@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "Graphics/Pipeline.hpp"
 
 namespace Core
 {
@@ -14,5 +15,6 @@ namespace Core
 
     private:
         Window mWindow{WIDTH, HEIGHT, "VulkanStudy"};
+        Pipeline mPipeline{"../../../Assets/Shader/.Compile/Triangle.vert.spv", "../../../Assets/Shader/.Compile/Triangle.frag.spv"};
     };
 }

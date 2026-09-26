@@ -2,6 +2,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <shaderc/shaderc.hpp>
+
 #include <Window/Application.hpp>
 
 int main()
