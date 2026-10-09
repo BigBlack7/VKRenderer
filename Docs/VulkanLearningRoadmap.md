@@ -11,19 +11,19 @@
 
 这份文档既是课程目录，也是学习进度表。
 
-- `[ ]`：尚未开始
-- `[x]`：已经完成并通过仓库 Review
+- `[ ]`：尚未完成
+- `[x]`：已达到对应小节的验收要求
 - `Optional`：可选章节，不阻塞主线
-- `Advanced`：高级专题，完成基础主线后进入
+- `Advanced`：高级专题，完成必要前置学习后进入
 
 每完成一个教学小节：
 
-1. 完成本节理论学习与代码实践。
-2. 确保对应 Sandbox 或当前阶段样例可独立编译、运行。
-3. 提交并 Push 到 GitHub。
-4. 进行一次代码 Review。
-5. 修正问题后，在本文件中将对应 `[ ]` 改成 `[x]`。
-6. 如本节产生稳定且重复的抽象，再讨论是否从 Sandbox 提升到 Core。
+1. 完成本节理论学习，以及该节要求的代码实践。
+2. 理论小节通过知识检查后，可直接标记完成。
+3. 实践小节需确保对应 Sandbox 或样例可以编译、运行。
+4. 实践代码提交并 Push 到 GitHub，进行 Code Review。
+5. 修正问题并通过验收后，将对应 `[ ]` 修改为 `[x]`。
+6. 如果出现稳定且重复的抽象，再讨论是否提升到 Core。
 
 > **原则：先验证，后抽象。Sandbox 是实验场，Core 是稳定复用层。**
 
@@ -124,23 +124,31 @@ VKRenderer/
 
 目标：明确当前 Khronos 教程采用的现代 Vulkan 技术栈和学习边界。
 
-- [ ] 00.1 Attribution / 教程来源与 Khronos 版本
-- [ ] 00.2 Differences / 新版教程与旧 Vulkan Tutorial 的差异
+- [x] 00.1 Attribution / 教程来源与 Khronos 版本
+- [x] 00.2 Differences / 新版教程与旧 Vulkan Tutorial 的差异
   - Vulkan 1.4 baseline
   - Dynamic Rendering
   - Timeline Semaphore
   - Slang
   - C++20
   - Vulkan-Hpp + RAII
-- [ ] 00.3 About / Vulkan 的定位、优势与代价
-- [ ] 00.4 前置知识与工具链要求
-- [ ] 00.5 Vulkan-Hpp / RAII 的教学路线
-- [ ] 00.6 Tutorial Structure / 官方教程整体结构
-- [ ] 00.7 Advanced Topics / 高级专题入口
+- [x] 00.3 About / Vulkan 的定位、优势与代价
+- [x] 00.4 前置知识与工具链要求
+- [x] 00.5 Vulkan-Hpp / RAII 的教学路线
+- [x] 00.6 Tutorial Structure / 官方教程整体结构
+- [x] 00.7 Advanced Topics / 高级专题入口
 
 **课程产物：**
 - Vulkan 学习目标与技术基线确认。
 - 不要求产生正式 Vulkan 代码。
+
+**验收记录（2026-10-09）：**
+- Introduction 七个小节的理论学习已完成。
+- 明确 VKRenderer 的现代 Vulkan 技术基线。
+- 明确 Sandbox 与 Core 的架构职责。
+- 本章无正式 Vulkan 代码产物，无需代码 Review。
+
+**章节状态：已完成。**
 
 ---
 
@@ -186,7 +194,7 @@ VKRenderer/
 官方：
 `02_Development_environment`
 
-> **当前阶段**
+> **计划阶段：完成 01 Overview 后开始；M0 尚未验收。**
 
 目标：建立 VKRenderer 零号工程基线。
 
@@ -966,13 +974,13 @@ Core/
 
 # 6. 当前进度
 
-```text
 Phase 0 — World View & Environment
 
-00 Introduction             待正式教学
-01 Overview                 待正式教学
-02 Development Environment  ← CURRENT
-03 Drawing a Triangle       未开始
+```text
+00 Introduction             [COMPLETED]
+01 Overview                 ← NEXT
+02 Development Environment  [PENDING]
+03 Drawing a Triangle       [PENDING]
 ```
 
 当前任务：
