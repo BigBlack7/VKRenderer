@@ -159,16 +159,16 @@ VKRenderer/
 
 目标：在写代码前建立完整 Vulkan mental model。
 
-- [ ] 01.1 Origin of Vulkan
+- [x] 01.1 Origin of Vulkan
   - 传统图形 API 的 Driver 隐式工作
   - Vulkan 为什么选择显式模型
   - CPU overhead 与多线程
-- [ ] 01.2 Coding Conventions
+- [x] 01.2 Coding Conventions
   - Vulkan C API 与 Vulkan-Hpp
   - handle / enum / flags / struct 基本阅读方式
 - [ ] 01.3 What It Takes to Draw a Triangle
-  - [ ] Step 1 — Instance & Physical Device
-  - [ ] Step 2 — Logical Device & Queue Families
+  - [x] Step 1 — Instance & Physical Device
+  - [x] Step 2 — Logical Device & Queue Families
   - [ ] Step 3 — Window Surface & Swapchain
   - [ ] Step 4 — Swapchain Image Views
   - [ ] Step 5 — Dynamic Rendering
