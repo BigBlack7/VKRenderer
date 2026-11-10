@@ -16,14 +16,17 @@
 - `Optional`：可选章节，不阻塞主线
 - `Advanced`：高级专题，完成必要前置学习后进入
 
+
 每完成一个教学小节：
 
 1. 完成本节理论学习，以及该节要求的代码实践。
-2. 理论小节通过知识检查后，可直接标记完成。
-3. 实践小节需确保对应 Sandbox 或样例可以编译、运行。
-4. 实践代码提交并 Push 到 GitHub，进行 Code Review。
-5. 修正问题并通过验收后，将对应 `[ ]` 修改为 `[x]`。
-6. 如果出现稳定且重复的抽象，再讨论是否提升到 Core。
+2. 理论小节通过理解检查后，可直接标记完成并继续下一节。
+3. 简单理论章节允许在同一会话中连续推进，无需逐节 Git 提交。
+4. 理论大章节结束后，统一更新学习进度并提交 Git。
+5. 实践小节需完成相应的编译、运行和必要的 Validation。
+6. 实践代码按阶段或里程碑提交 GitHub，进行 Code Review。
+7. 修正问题并通过验收后，将对应 `[ ]` 修改为 `[x]`。
+8. 如果出现稳定且重复的抽象，再讨论是否提升到 Core。
 
 > **原则：先验证，后抽象。Sandbox 是实验场，Core 是稳定复用层。**
 
@@ -152,6 +155,7 @@ VKRenderer/
 
 ---
 
+
 ## 01 — Overview
 
 官方：
@@ -166,35 +170,66 @@ VKRenderer/
 - [x] 01.2 Coding Conventions
   - Vulkan C API 与 Vulkan-Hpp
   - handle / enum / flags / struct 基本阅读方式
-- [ ] 01.3 What It Takes to Draw a Triangle
+- [x] 01.3 What It Takes to Draw a Triangle
   - [x] Step 1 — Instance & Physical Device
   - [x] Step 2 — Logical Device & Queue Families
-  - [ ] Step 3 — Window Surface & Swapchain
-  - [ ] Step 4 — Swapchain Image Views
-  - [ ] Step 5 — Dynamic Rendering
-  - [ ] Step 6 — Graphics Pipeline
-  - [ ] Step 7 — Command Pool & Command Buffer
-  - [ ] Step 8 — Main Loop / Acquire / Submit / Present
-- [ ] 01.4 Summary / 第一帧的完整数据流
-- [ ] 01.5 API Concepts
+  - [x] Step 3 — Window Surface & Swapchain
+  - [x] Step 4 — Swapchain Image Views
+  - [x] Step 5 — Dynamic Rendering
+  - [x] Step 6 — Graphics Pipeline
+  - [x] Step 7 — Command Pool & Command Buffer
+  - [x] Step 8 — Main Loop / Acquire / Submit / Present
+- [x] 01.4 Summary / 第一帧的完整数据流
+- [x] 01.5 API Concepts
   - CreateInfo
   - `sType` / `pNext`
   - `vk::Result`
   - Exception
   - Allocation callbacks
-- [ ] 01.6 Validation Layers
+  - Vulkan-Hpp / RAII 所有权
+- [x] 01.6 Validation Layers
+  - `VK_LAYER_KHRONOS_validation`
+  - `VK_EXT_debug_utils`
+  - Debug Messenger
+  - Severity / Message Type
+  - VUID 与规范查询
+  - Validation 能力边界
 
 **课程产物：**
-- 能够不看代码画出第一帧 Vulkan 对象关系和执行流程图。
+- 建立从 Instance 到第一帧呈现的完整对象关系模型。
+- 理解 CPU 命令录制、GPU 执行和 Presentation 的区别。
+- 理解 Vulkan 对象所有权、生命周期及同步的基本约束。
+- 理解 Vulkan-Hpp、RAII、CreateInfo、pNext 和 Result。
+- 建立使用 Validation Layer、Debug Messenger 和 VUID 排查问题的基本方法。
+
+**验收记录（2026-11-10）：**
+- 01.1～01.6 全部完成理论学习并通过理解检查。
+- 01.3 的八个 Step 全部通过单独验收。
+- 能够解释第一帧 Vulkan 渲染的主要对象、执行流程和同步关系。
+- 已区分 Surface、Swapchain、ImageView 的职责及所有权。
+- 已区分 Graphics Queue、Present Queue 和 Queue Family。
+- 已区分 Command Buffer 录制、Queue Submission 和 GPU 执行。
+- 已区分 Graphics Pipeline、Dynamic Rendering 和 Image Layout。
+- 已理解 Validation Layer 的作用及其不能保证程序完全正确的局限。
+- 本章属于理论章节，无正式 Vulkan 代码产物，不要求编译及代码 Review。
+
+**后续实践仍需验证：**
+- 真实 Vulkan 对象的创建与 RAII 生命周期。
+- GPU 同步、图像布局转换及 Swapchain 重建。
+- Vulkan-Hpp / C++20 / MSVC 的实际编译兼容性。
+- Validation Layers 的实际运行及错误诊断。
+
+**章节状态：已完成（理论验收通过）。**
 
 ---
+
 
 ## 02 — Development Environment
 
 官方：
 `02_Development_environment`
 
-> **计划阶段：完成 01 Overview 后开始；M0 尚未验收。**
+> **当前阶段：01 Overview 已完成理论验收，下一步开始 02 Development Environment；M0 尚未验收。**
 
 目标：建立 VKRenderer 零号工程基线。
 
@@ -972,23 +1007,70 @@ Core/
 
 ---
 
+
 # 6. 当前进度
+
+## 学习阶段
 
 Phase 0 — World View & Environment
 
 ```text
 00 Introduction             [COMPLETED]
-01 Overview                 ← NEXT
-02 Development Environment  [PENDING]
+01 Overview                 [COMPLETED]
+02 Development Environment  ← NEXT / M0 PENDING
 03 Drawing a Triangle       [PENDING]
 ```
 
-当前任务：
+## 已完成的理论学习
 
-- 完成工程骨架 Review。
-- 完成 CMake / ThirdParty / Vulkan SDK 基线。
-- 建立 Environment Check。
-- 通过零号基线后，再开始 `00 Introduction → 01 Overview → 03 Drawing a Triangle` 的正式课程。
+- 00 Introduction：已完成（2026-10-09）。
+- 01 Overview：已完成（2026-11-10）。
+  - 01.1 Origin of Vulkan
+  - 01.2 Coding Conventions
+  - 01.3 What It Takes to Draw a Triangle（8/8）
+  - 01.4 Summary
+  - 01.5 API Concepts
+  - 01.6 Validation Layers
+
+上述内容已通过理论验收。
+
+## 当前工程状态
+
+截至最近一次仓库检查：
+
+- 默认分支：`main`
+- 最近检查 Commit：`56109775b81f`
+- Root CMake 已配置 C++20、MSVC 选项及基础子目录。
+- ThirdParty 已包含 GLFW 和 GLM 的基础配置。
+- Core 与 Sandbox 的 CMakeLists.txt 尚未建立实际构建目标。
+- 尚未创建正式的 Vulkan Sandbox 可执行程序。
+- 尚未完成 Vulkan SDK、GPU 能力及 Debug/Release 构建验证。
+- M0 开发环境基线尚未验收。
+
+## 下一阶段任务
+
+**02 Development Environment — M0**
+
+1. 核查 Windows / VS Code / MSVC / CMake / C++20。
+2. 核查 Vulkan SDK、Vulkan Loader、Validation Layers 和相关工具。
+3. 确认 GPU 与驱动的 Vulkan API 版本及功能支持。
+4. 核查 Slang 编译器及 SPIR-V 工具链。
+5. 验证现有 GLFW、GLM 依赖及其 CMake 配置。
+6. 建立最小 Environment Check 可执行目标。
+7. 完成 Debug / Release 编译和运行验证。
+8. 提交代码至 GitHub，完成 M0 Code Review。
+
+**M0 验收前，不开始 03 Drawing a Triangle 的正式 Vulkan API 实现。**
+
+## 学习与 Git 约定
+
+- 简单理论章节可在同一会话中连续推进。
+- 理论小节通过验收后即可继续下一小节，不要求立即提交 Git。
+- 理论大章节结束时，统一整理学习记录并提交 Git。
+- 复杂实践章节根据自然的知识单元与工程里程碑拆分会话。
+- 实践代码需要编译、运行、必要的 Validation 和 GitHub Review。
+- 新会话优先核查当前 Roadmap、最新 Commit 和工程状态。
+- 不将理论验收等同于编译或运行验收。
 
 ---
 
