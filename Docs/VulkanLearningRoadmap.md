@@ -298,10 +298,14 @@ VKRenderer/
   - Release 构建及运行成功
   - Debug LNK4098 链接警告已修正
   - Debug Clean Build 重新验证通过
-- [ ] 02.15 零号基线 Review
-  - 本地编译与运行验证完成
-  - 待推送 EnvironmentCheck 及相关 CMake 配置
-  - 待 GitHub 最终 Code Review
+- [x] 02.15 零号基线 Review
+  - EnvironmentCheck 已提交 GitHub。
+  - 最新实践 Commit：`7fc7bbcae08539fd49bcb44d841d3a4598d93315`
+  - Root CMake、ThirdParty CMake、Sandbox CMake 审查通过。
+  - EnvironmentCheck C++20 源码审查通过。
+  - Debug / Release 本地编译与运行验证通过。
+  - 无 P0 / P1 问题。
+  - M0 最终验收通过。
 
 **课程产物：**
 
@@ -375,10 +379,16 @@ Debug / Release 均成功输出：
 - GLFW、GLM、Slang 基础验证完成。
 - Debug / Release 编译运行验证完成。
 - Debug CRT 链接警告已修正。
-- 环境验证未发现阻断后续学习的问题。
-- GitHub 最终 Code Review 尚未完成。
+- GitHub 最终 Code Review 已完成。
+- 审查 Commit：`7fc7bbcae08539fd49bcb44d841d3a4598d93315`
+- 未发现 P0 / P1 问题。
+- EnvironmentCheck 保留为独立 Sandbox。
+- Core 暂不引入不必要的封装。
+- 后续正式 Vulkan Sandbox 需要重新评估 Debug CRT 与第三方库的兼容性。
+- Vulkan Feature、设备选择和真实 Validation 运行将在后续相关章节验证。
+- M0 开发环境基线通过最终验收。
 
-**章节状态：本地环境验证通过，等待 GitHub Review。**
+**章节状态：已完成（本地验证与 GitHub Code Review 通过）。**
 
 ---
 
@@ -1060,7 +1070,7 @@ Core/
 
 | Milestone | 目标 | 状态 |
 |---|---|---|
-| M0 | 开发环境 / CMake / ThirdParty / SDK 基线 | [ ] 本地验证通过，待 Review |
+| M0 | 开发环境 / CMake / ThirdParty / SDK 基线 | [x] |
 | M1 | First Triangle | [ ] |
 | M2 | Vertex + Index Buffer | [ ] |
 | M3 | Uniform / Descriptor / Transform | [ ] |
@@ -1126,8 +1136,8 @@ Phase 0 — World View & Environment
 ```text
 00 Introduction             [COMPLETED]
 01 Overview                 [COMPLETED]
-02 Development Environment  [LOCAL VERIFIED / REVIEW PENDING]
-03 Drawing a Triangle       [PENDING]
+02 Development Environment  [COMPLETED]
+03 Drawing a Triangle       ← NEXT / M1 PENDING
 ```
 
 ## 已完成的理论学习
@@ -1148,7 +1158,7 @@ Phase 0 — World View & Environment
 截至 2026-11-10：
 
 - 默认分支：`main`
-- 最近已确认 Commit：`b5cd1db340e431c4c68eb0335df51e4b0fcae005`
+- 最近通过 Code Review 的 Commit：`7fc7bbcae08539fd49bcb44d841d3a4598d93315`
 - Root CMake 已配置 C++20、MSVC 选项及基础子目录。
 - ThirdParty 已包含 GLFW 3.4 和 GLM。
 - Core 暂无正式复用代码。
@@ -1158,35 +1168,54 @@ Phase 0 — World View & Environment
 - NVIDIA RTX 4080 Laptop GPU 已确认支持 Vulkan 1.4。
 - Debug / Release 编译运行成功。
 - 初始 Debug 链接警告 LNK4098 已消除。
-- M0 本地环境验证通过。
-- EnvironmentCheck 最新代码尚待 GitHub Review。
+- M0 本地环境验证与 GitHub Code Review 均已通过。
+- 02 Development Environment 已完成最终验收。
+- EnvironmentCheck 作为独立环境测试 Sandbox 保留。
+- 当前未发现阻断下一章节的 P0 / P1 问题。
 - 尚未开始正式 Vulkan 渲染 Sandbox。
 
 ## 下一阶段任务
 
-**M0 最终验收：**
+**03 Drawing a Triangle — M1**
 
-1. 提交 EnvironmentCheck、相关 CMake 配置及学习记录。
-2. Push 到 GitHub。
-3. 获取最新 Commit 并进行 Code Review。
-4. 修正审查发现的 P0 / P1 问题（如有）。
-5. 通过后勾选 02.15 和 M0。
-
-**下一正式教学章节：03 Drawing a Triangle**
-
-首先进入：
+当前学习目标：
 
 `03_Drawing_a_triangle/00_Setup/00_Base_code`
 
-主要学习：
+官方教学顺序：
 
-- GLFW 初始化与窗口循环。
-- `GLFW_NO_API`。
-- Vulkan-Hpp / RAII 的基础配置。
-- Application 结构与异常边界。
-- 初始化、主循环及清理的职责划分。
+1. Base Code
+2. Instance
+3. Validation Layers
+4. Physical Devices and Queue Families
+5. Logical Device and Queues
 
-本阶段不提前实现 Instance、Swapchain、Graphics Pipeline 等后续内容。
+**03.0.0 Base Code 学习任务：**
+
+- 理解 Vulkan Application 的基础组织结构。
+- 理解 GLFW 初始化、窗口创建和事件循环。
+- 理解 `GLFW_NO_API` 的作用。
+- 理解 Vulkan-Hpp / RAII 的基础使用方式。
+- 明确初始化、主循环和清理阶段的职责。
+- 讨论当前 Sandbox 的最小架构设计。
+- 在现有 VKRenderer 工程基础上逐步实现。
+- 完成编译、运行与必要的代码审查。
+
+**工程约束：**
+
+- 继续使用现有 Windows / MSVC / CMake / C++20 工具链。
+- 保留 M0 EnvironmentCheck，作为独立环境基线。
+- 新 Vulkan 实验放入 Sandbox。
+- 不提前将代码提升到 Core。
+- 不引入复杂继承体系或不必要的 Manager。
+- 不提前实现后续小节的 Instance、Swapchain 或 Graphics Pipeline。
+- 每个实践小节完成后按约定进行验收。
+
+**下一里程碑：M1 — First Triangle**
+
+当前状态：尚未开始。
+
+在完成 03 Drawing a Triangle 的相关小节并通过实践验收后，标记 M1 完成。
 
 ## 学习与 Git 约定
 
