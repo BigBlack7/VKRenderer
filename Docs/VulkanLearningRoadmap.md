@@ -223,52 +223,162 @@ VKRenderer/
 
 ---
 
-
 ## 02 — Development Environment
 
 官方：
 `02_Development_environment`
 
-> **当前阶段：01 Overview 已完成理论验收，下一步开始 02 Development Environment；M0 尚未验收。**
+目标：建立 VKRenderer 零号工程基线，验证 Windows、MSVC、CMake、Vulkan SDK、Slang 和 ThirdParty 依赖，确保后续 Vulkan 开发环境稳定可用。
 
-目标：建立 VKRenderer 零号工程基线。
-
-- [ ] 02.1 Repository / Git 基线
-- [ ] 02.2 Windows + VSCode + MSVC
-- [ ] 02.3 CMake
-  - configure / generate / build
-  - Debug / Release
-  - MSVC multi-config generator
-- [ ] 02.4 Vulkan SDK
-  - Vulkan Loader
-  - Vulkan headers
-  - Validation Layers
-  - `vulkaninfo`
-  - `vkcube`
-  - `vkconfig`
-- [ ] 02.5 Slang Toolchain
-  - `slangc`
-  - Slang → SPIR-V 的位置和作用
-- [ ] 02.6 Window Management — GLFW
-- [ ] 02.7 Math Library — GLM
-- [ ] 02.8 Texture / Model 第三方依赖策略
-- [ ] 02.9 VKRenderer 目录职责确认
+- [x] 02.1 Repository / Git 基线
+  - 确认 GitHub 仓库与 main 分支
+  - 保留现有 VKRenderer 工程作为开发基线
+- [x] 02.2 Windows + VSCode + MSVC
+  - Visual Studio 2022
+  - MSVC 19.44.35228.0
+  - Windows SDK 10.0.26100.0
+  - C++20 编译通过
+- [x] 02.3 CMake
+  - configure / generate / build 成功
+  - Visual Studio 17 2022 / x64
+  - Debug / Release 多配置构建成功
+- [x] 02.4 Vulkan SDK
+  - Vulkan SDK 1.4.357
+  - Vulkan Headers / Vulkan-Hpp RAII
+  - Vulkan Loader 1.4.357
+  - `find_package(Vulkan REQUIRED)` 成功
+  - `Vulkan::Vulkan` 链接成功
+  - `vulkaninfo` 正常运行
+  - `vkcube` 正常运行
+  - `VK_LAYER_KHRONOS_validation` 已检测到
+  - `VK_EXT_debug_utils` 已检测到
+  - `vkconfig` 未单独验证，不阻塞 M0
+- [x] 02.5 Slang Toolchain
+  - `slangc` 2026.13.1 可用
+  - Slang → SPIR-V 的自动编译将在 Shader Modules 小节实现
+- [x] 02.6 Window Management — GLFW
+  - GLFW 3.4.0
+  - 头文件包含成功
+  - 静态库链接成功
+  - `glfwGetVersion()` 调用成功
+- [x] 02.7 Math Library — GLM
+  - GLM 头文件包含成功
+  - `glm::vec3` 测试成功
+- [x] 02.8 Texture / Model 第三方依赖策略
+  - 当前阶段不提前引入纹理与模型加载库
+  - stb_image、tinyobjloader 等按后续教程进度加入
+- [x] 02.9 VKRenderer 目录职责确认
   - Core
   - Sandbox
   - ThirdParty
   - Slang
   - Assets
   - Docs
-- [ ] 02.10 Root CMake 基线
-- [ ] 02.11 ThirdParty CMake 基线
-- [ ] 02.12 Core / Sandbox CMake 基线
-- [ ] 02.13 首个 Environment Check 可执行目标
-- [ ] 02.14 Debug / Release 均能 configure、build、run
+- [x] 02.10 Root CMake 基线
+  - C++20
+  - MSVC 编译选项
+  - 构建输出目录
+  - 基础子目录配置
+- [x] 02.11 ThirdParty CMake 基线
+  - GLFW Imported Static Library
+  - GLM Interface Library
+  - CMake Target 依赖传递正常
+- [x] 02.12 Core / Sandbox CMake 基线
+  - 保留现有 Core / Sandbox 结构
+  - Sandbox 建立 EnvironmentCheck 构建目标
+  - Core 暂无复用代码，不提前抽象
+- [x] 02.13 首个 Environment Check 可执行目标
+  - `Sandbox/EnvironmentCheck/Main.cpp`
+  - GLFW / GLM 基础功能验证
+  - Vulkan Loader 版本查询
+  - Vulkan-Hpp RAII 头文件编译验证
+  - 不创建正式 Vulkan 渲染对象
+- [x] 02.14 Debug / Release 均能 configure、build、run
+  - Debug 构建及运行成功
+  - Release 构建及运行成功
+  - Debug LNK4098 链接警告已修正
+  - Debug Clean Build 重新验证通过
 - [ ] 02.15 零号基线 Review
+  - 本地编译与运行验证完成
+  - 待推送 EnvironmentCheck 及相关 CMake 配置
+  - 待 GitHub 最终 Code Review
 
 **课程产物：**
-- 一个无 Vulkan 业务代码、但工具链完全健康的项目骨架。
-- 通过此 checkpoint 后正式进入 Vulkan API。
+
+- 建立能够正常配置、编译和运行的 C++20 工程基线。
+- 验证 Vulkan SDK、Loader、Vulkan-Hpp 和 Validation Layer 的基础可用性。
+- 验证 GLFW、GLM、Slang 工具链。
+- 完成 Debug / Release 双配置构建验证。
+- 建立最小 EnvironmentCheck Sandbox。
+- 保留渐进式架构，不提前实现正式 Vulkan 渲染功能。
+
+**本机环境记录（2026-11-10）：**
+
+- 操作系统：Windows x64
+- 编译器：MSVC 19.44.35228.0
+- Windows SDK：10.0.26100.0
+- CMake 生成器：Visual Studio 17 2022
+- C++ 标准：C++20
+- Vulkan SDK / Loader：1.4.357
+- GLFW：3.4.0
+- Slang：2026.13.1
+- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU
+- NVIDIA 驱动：621.01
+- GPU Vulkan API：1.4.357
+- Validation Layer：VK_LAYER_KHRONOS_validation 已发现
+
+**EnvironmentCheck 验证结果：**
+
+Debug / Release 均成功输出：
+
+    GLFW: 3.4.0
+    GLM test: 6
+    Vulkan Loader API: 1.4.357
+
+**问题修正记录：**
+
+1. Debug 构建初次出现 MSVC `LNK4098` 运行时库冲突警告。
+   - EnvironmentCheck Target 使用 `MSVC_RUNTIME_LIBRARY "MultiThreadedDLL"`。
+   - 当前测试目标统一使用 `/MD`。
+   - Debug Clean Build 成功，警告已消失。
+   - 后续正式项目需注意 Debug / Release CRT 与第三方库的兼容性。
+
+2. `vulkaninfo` 出现 OBS Hook 与部分 ICD Display Extension 警告。
+   - Vulkan GPU 枚举正常。
+   - NVIDIA GPU Vulkan 1.4 支持已确认。
+   - 当前未发现阻断基础环境验证的问题。
+   - 后续如发生 Layer 冲突，再进行针对性排查。
+
+**GPU 兼容性说明：**
+
+- NVIDIA RTX 4080 Laptop GPU 支持 Vulkan 1.4.357。
+- Intel RaptorLake-S Mobile Graphics 支持 Vulkan 1.3.295。
+- 系统还枚举出 Dozen / Direct3D12 兼容设备。
+- 后续实践优先使用 NVIDIA 独立 GPU。
+- 不依赖固定 Physical Device 枚举索引。
+- Vulkan API 版本满足要求不等于所有 Feature 均已验证，后续创建 Physical Device / Logical Device 时进行正式能力检查。
+
+**架构决策：**
+
+- 继续沿用现有 VKRenderer 工程。
+- Sandbox 用于独立实验和章节验证。
+- Core 暂不添加无实际需求的抽象。
+- ThirdParty 保留当前 GLFW / GLM 配置。
+- 不提前创建 Window、Context、Renderer 等封装。
+- 不提前实现 Drawing a Triangle。
+
+**验收记录（2026-11-10）：**
+
+- M0 基础工具链验证完成。
+- CMake / MSVC / C++20 编译验证完成。
+- Vulkan SDK、Loader、Vulkan-Hpp 基础兼容性验证完成。
+- GLFW、GLM、Slang 基础验证完成。
+- Debug / Release 编译运行验证完成。
+- Debug CRT 链接警告已修正。
+- 环境验证未发现阻断后续学习的问题。
+- GitHub 最终 Code Review 尚未完成。
+
+**章节状态：本地环境验证通过，等待 GitHub Review。**
 
 ---
 
@@ -950,7 +1060,7 @@ Core/
 
 | Milestone | 目标 | 状态 |
 |---|---|---|
-| M0 | 开发环境 / CMake / ThirdParty / SDK 基线 | [ ] |
+| M0 | 开发环境 / CMake / ThirdParty / SDK 基线 | [ ] 本地验证通过，待 Review |
 | M1 | First Triangle | [ ] |
 | M2 | Vertex + Index Buffer | [ ] |
 | M3 | Uniform / Descriptor / Transform | [ ] |
@@ -1007,7 +1117,6 @@ Core/
 
 ---
 
-
 # 6. 当前进度
 
 ## 学习阶段
@@ -1017,7 +1126,7 @@ Phase 0 — World View & Environment
 ```text
 00 Introduction             [COMPLETED]
 01 Overview                 [COMPLETED]
-02 Development Environment  ← NEXT / M0 PENDING
+02 Development Environment  [LOCAL VERIFIED / REVIEW PENDING]
 03 Drawing a Triangle       [PENDING]
 ```
 
@@ -1036,31 +1145,48 @@ Phase 0 — World View & Environment
 
 ## 当前工程状态
 
-截至最近一次仓库检查：
+截至 2026-11-10：
 
 - 默认分支：`main`
-- 最近检查 Commit：`56109775b81f`
+- 最近已确认 Commit：`b5cd1db340e431c4c68eb0335df51e4b0fcae005`
 - Root CMake 已配置 C++20、MSVC 选项及基础子目录。
-- ThirdParty 已包含 GLFW 和 GLM 的基础配置。
-- Core 与 Sandbox 的 CMakeLists.txt 尚未建立实际构建目标。
-- 尚未创建正式的 Vulkan Sandbox 可执行程序。
-- 尚未完成 Vulkan SDK、GPU 能力及 Debug/Release 构建验证。
-- M0 开发环境基线尚未验收。
+- ThirdParty 已包含 GLFW 3.4 和 GLM。
+- Core 暂无正式复用代码。
+- Sandbox 已建立 EnvironmentCheck 构建目标。
+- Vulkan SDK / Loader 1.4.357 已验证。
+- Slang 2026.13.1 已验证。
+- NVIDIA RTX 4080 Laptop GPU 已确认支持 Vulkan 1.4。
+- Debug / Release 编译运行成功。
+- 初始 Debug 链接警告 LNK4098 已消除。
+- M0 本地环境验证通过。
+- EnvironmentCheck 最新代码尚待 GitHub Review。
+- 尚未开始正式 Vulkan 渲染 Sandbox。
 
 ## 下一阶段任务
 
-**02 Development Environment — M0**
+**M0 最终验收：**
 
-1. 核查 Windows / VS Code / MSVC / CMake / C++20。
-2. 核查 Vulkan SDK、Vulkan Loader、Validation Layers 和相关工具。
-3. 确认 GPU 与驱动的 Vulkan API 版本及功能支持。
-4. 核查 Slang 编译器及 SPIR-V 工具链。
-5. 验证现有 GLFW、GLM 依赖及其 CMake 配置。
-6. 建立最小 Environment Check 可执行目标。
-7. 完成 Debug / Release 编译和运行验证。
-8. 提交代码至 GitHub，完成 M0 Code Review。
+1. 提交 EnvironmentCheck、相关 CMake 配置及学习记录。
+2. Push 到 GitHub。
+3. 获取最新 Commit 并进行 Code Review。
+4. 修正审查发现的 P0 / P1 问题（如有）。
+5. 通过后勾选 02.15 和 M0。
 
-**M0 验收前，不开始 03 Drawing a Triangle 的正式 Vulkan API 实现。**
+**下一正式教学章节：03 Drawing a Triangle**
+
+首先进入：
+
+`03_Drawing_a_triangle/00_Setup/00_Base_code`
+
+主要学习：
+
+- GLFW 初始化与窗口循环。
+- `GLFW_NO_API`。
+- Vulkan-Hpp / RAII 的基础配置。
+- Application 结构与异常边界。
+- 初始化、主循环及清理的职责划分。
+
+本阶段不提前实现 Instance、Swapchain、Graphics Pipeline 等后续内容。
 
 ## 学习与 Git 约定
 
@@ -1071,6 +1197,7 @@ Phase 0 — World View & Environment
 - 实践代码需要编译、运行、必要的 Validation 和 GitHub Review。
 - 新会话优先核查当前 Roadmap、最新 Commit 和工程状态。
 - 不将理论验收等同于编译或运行验收。
+- 不因环境配置细节而过度设计架构。
 
 ---
 
