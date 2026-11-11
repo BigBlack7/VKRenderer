@@ -1,0 +1,83 @@
+#include <vulkan/vulkan_raii.hpp>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
+
+constexpr int kWindowWidth = 800;
+constexpr int kWindowHeight = 600;
+
+class HelloTriangleApplication
+{
+public:
+    void run()
+    {
+        try
+        {
+            initWindow();
+            initVulkan();
+            mainLoop();
+        }
+        catch (...)
+        {
+            cleanup();
+            throw;
+        }
+        cleanup();
+    }
+
+private:
+    GLFWwindow *mWindow{nullptr};
+
+    void initWindow()
+    {
+        if (glfwInit() != GLFW_TRUE)
+        {
+            throw std::runtime_error("Failed to initialize GLFW");
+        }
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        mWindow = glfwCreateWindow(kWindowWidth, kWindowHeight, "Vulkan", nullptr, nullptr);
+    }
+
+    void initVulkan() {}
+    void mainLoop()
+    {
+        while (!glfwWindowShouldClose(mWindow))
+        {
+            glfwPollEvents();
+        }
+    }
+
+    void cleanup() noexcept
+    {
+        if (mWindow)
+        {
+            glfwDestroyWindow(mWindow);
+            mWindow = nullptr;
+        }
+        glfwTerminate();
+    }
+};
+
+int main()
+{
+    HelloTriangleApplication app;
+
+    try
+    {
+        app.run();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
