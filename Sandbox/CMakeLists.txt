@@ -1,5 +1,6 @@
 find_package(Vulkan REQUIRED)
 
+# ================EnvironmentCheck================
 add_executable(EnvironmentCheck
     EnvironmentCheck/Main.cpp
 )
@@ -20,6 +21,7 @@ if(WIN32)
     )
 endif()
 
+# ================HelloTriangle================
 add_executable(HelloTriangle
     HelloTriangle/Main.cpp
 )

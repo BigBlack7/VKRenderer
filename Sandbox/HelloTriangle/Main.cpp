@@ -6,6 +6,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cstdint>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -31,6 +35,8 @@ public:
 
 private:
     GLFWwindow *mWindow{nullptr};
+    vk::raii::Context mContext;
+    vk::raii::Instance mInstance{nullptr};
 
     void initWindow()
     {
@@ -49,7 +55,11 @@ private:
         }
     }
 
-    void initVulkan() {}
+    void initVulkan()
+    {
+        createInstance();
+    }
+
     void mainLoop()
     {
         while (!glfwWindowShouldClose(mWindow))
@@ -66,6 +76,44 @@ private:
             mWindow = nullptr;
         }
         glfwTerminate();
+    }
+
+    void createInstance()
+    {
+        try
+        {
+            constexpr vk::ApplicationInfo appInfo{
+                .pApplicationName = "Hello Triangle",
+                .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+                .pEngineName = "No Engine",
+                .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+                .apiVersion = vk::ApiVersion14};
+
+            uint32_t glfwExtensionCount = 0;
+            const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+            if (!glfwExtensions)
+            {
+                throw std::runtime_error("Failed to get required GLFW extensions");
+            }
+
+            auto availableExtensions = mContext.enumerateInstanceExtensionProperties();
+            std::ranges::any_of(availableExtensions,
+                                [required = glfwExtensions[glfwExtensionCount]](const vk::ExtensionProperties &extension)
+                                { return std::strcmp(extension.extensionName, required) == 0; });
+
+            vk::InstanceCreateInfo createInfo{
+                .pApplicationInfo = &appInfo,
+                .enabledExtensionCount = glfwExtensionCount,
+                .ppEnabledExtensionNames = glfwExtensions};
+
+            mInstance = vk::raii::Instance(mContext, createInfo);
+            std::cout << "Vulkan Instance created successfully\n";
+        }
+        catch (...)
+        {
+            std::cout << "Vulkan Instance created failed\n";
+            throw;
+        }
     }
 };
 
