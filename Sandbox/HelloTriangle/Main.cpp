@@ -80,49 +80,51 @@ private:
 
     void createInstance()
     {
-        try
+        // 获取 GLFW 所需的 Vulkan 实例扩展及其数量
+        uint32_t glfwExtensionCount = 0;
+        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        if (!glfwExtensions || glfwExtensionCount == 0)
         {
-            constexpr vk::ApplicationInfo appInfo{
-                .pApplicationName = "Hello Triangle",
-                .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-                .pEngineName = "No Engine",
-                .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-                .apiVersion = vk::ApiVersion14};
+            throw std::runtime_error("Failed to get required GLFW extensions");
+        }
 
-            uint32_t glfwExtensionCount = 0;
-            const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-            if (!glfwExtensions)
+        // 检查所需的扩展是否可用, 缺少任何扩展则抛出异常
+        const auto availableExtensions = mContext.enumerateInstanceExtensionProperties();
+        for (uint32_t i = 0; i < glfwExtensionCount; ++i)
+        {
+            const char *required = glfwExtensions[i];
+
+            const bool supported = std::ranges::any_of(
+                availableExtensions, [required](const vk::ExtensionProperties &extension)
+                { return std::strcmp(extension.extensionName, required) == 0; });
+
+            if (!supported)
             {
-                throw std::runtime_error("Failed to get required GLFW extensions");
+                throw std::runtime_error(std::string("Missing required Vulkan instance extension: ") + required);
             }
-
-            auto availableExtensions = mContext.enumerateInstanceExtensionProperties();
-            std::ranges::any_of(availableExtensions,
-                                [required = glfwExtensions[glfwExtensionCount]](const vk::ExtensionProperties &extension)
-                                { return std::strcmp(extension.extensionName, required) == 0; });
-
-            vk::InstanceCreateInfo createInfo{
-                .pApplicationInfo = &appInfo,
-                .enabledExtensionCount = glfwExtensionCount,
-                .ppEnabledExtensionNames = glfwExtensions};
-
-            mInstance = vk::raii::Instance(mContext, createInfo);
-            std::cout << "Vulkan Instance created successfully\n";
         }
-        catch (...)
-        {
-            std::cout << "Vulkan Instance created failed\n";
-            throw;
-        }
+
+        constexpr vk::ApplicationInfo appInfo{
+            .pApplicationName = "Hello Triangle",
+            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+            .pEngineName = "No Engine",
+            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+            .apiVersion = vk::ApiVersion14};
+
+        vk::InstanceCreateInfo createInfo{
+            .pApplicationInfo = &appInfo,
+            .enabledExtensionCount = glfwExtensionCount,
+            .ppEnabledExtensionNames = glfwExtensions};
+
+        mInstance = vk::raii::Instance(mContext, createInfo);
     }
 };
 
 int main()
 {
-    HelloTriangleApplication app;
-
     try
     {
+        HelloTriangleApplication app;
         app.run();
     }
     catch (const std::exception &e)
@@ -130,6 +132,5 @@ int main()
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-
     return EXIT_SUCCESS;
 }
