@@ -6,9 +6,9 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)
-- **刚完成：** [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)
-- **当前里程碑：** M1 First Triangle — 尚未完成
+- **当前学习目标：** [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
+- **刚完成：** [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)
+- **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
 
@@ -30,7 +30,7 @@
 
 ### Phase 1 — Drawing a Triangle
 
-- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0 已完成）
+- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0 Base Code、03.0.1 Instance 已完成）
   - [03.0 — Setup](Roadmap/03-0-Setup.md)
   - [03.1 — Presentation](Roadmap/03-1-Presentation.md)
   - [03.2 — Graphics Pipeline Basics](Roadmap/03-2-Graphics-Pipeline-Basics.md)
@@ -253,42 +253,84 @@ VKRenderer/
 
 ## 6. 当前进度
 
-**记录基线：2026-11-11。** 学习总纲已拆分为按章维护的文件。该进度依据原总纲中的已完成小节与 GitHub 代码审查记录校准。
+**记录日期：2026-11-11。**
+
+当前按照 Khronos Vulkan Tutorial（latest）推进。
 
 ```text
 Phase 0 — World View & Environment
   00 Introduction              [COMPLETED]
   01 Overview                  [COMPLETED]
   02 Development Environment   [COMPLETED]  M0
+
 Phase 1 — Drawing a Triangle   [IN PROGRESS]
   03.0.0 Base Code             [COMPLETED]
-  03.0.1 Instance              ← NEXT / NOT STARTED
-M1 First Triangle              [PENDING]
+  03.0.1 Instance              [COMPLETED]
+  03.0.2 Validation Layers     ← NEXT / NOT STARTED
+
+M1 First Triangle              [IN PROGRESS]
 ```
 
 **已通过验收：**
 
 - [00 Introduction](Roadmap/00-Introduction.md)：2026-10-09，理论验收通过。
 - [01 Overview](Roadmap/01-Overview.md)：2026-11-10，理论验收通过。
-- [02 Development Environment](Roadmap/02-Development-Environment.md)：2026-11-10，M0 Debug/Release 验证和 GitHub Review 通过。
-- [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，原理、Debug/Release、异常路径与静态 Code Review 通过。
+- [02 Development Environment](Roadmap/02-Development-Environment.md)：2026-11-10，M0 最终验收通过。
+- [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，理论、代码及 GitHub Review 通过。
+- [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)：2026-11-11，理论、Instance 创建、扩展检查、RAII 生命周期及 GitHub Review 通过。
 
 **当前工程基线：**
 
-- GitHub：`BigBlack7/VKRenderer`，默认分支 `main`。
-- 本次目录拆分依据的 Roadmap Commit：`9d042952ca9bcaef2315ad3de385e00d0f1b7967`。
-- 最近完成审查的代码修复 Commit：`b99f2e8df049efb61ddbe5f00a20f10516f6aac5`。
-- Windows x64、Visual Studio 2022 / MSVC 19.44.35228.0、C++20、CMake。
-- Vulkan SDK / Loader 1.4.357；GLFW 3.4、GLM、Slang 2026.13.1。
-- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU（已确认支持 Vulkan 1.4）。
-- `EnvironmentCheck` 作为独立 M0 环境验证 Sandbox 保留。
-- `HelloTriangle` 是 M1 的正式实践 Sandbox，目前只包含 GLFW 窗口骨架及事件循环；尚未创建 Vulkan Instance。
-- `Core` 暂不引入新的 Window、Context、Renderer 等抽象。
-- 当前无未解决的 P0/P1 代码问题；后续需要对真实 Vulkan 资源和同步进行新一轮验证。
+- GitHub：`BigBlack7/VKRenderer`。
+- 默认分支：`main`。
+- 学习文档重构 Commit：`bdd17da552bcc16306024f3d3985557c93b42bdb`。
+- 最近完成代码审查的 Commit：`80e4a23f09b36535ae51bb32b1cd93dc84d4f7b7`。
+- 当前工作环境：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
+- Vulkan SDK / Loader：1.4.357。
+- GLFW：3.4。
+- Slang：2026.13.1。
+- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU，已确认支持 Vulkan 1.4。
+- `EnvironmentCheck` 继续作为 M0 环境验证 Sandbox 保留。
+- `HelloTriangle` 为 M1 正式实践 Sandbox。
+- GLFW 窗口、事件循环及异常边界已完成。
+- Vulkan-Hpp RAII Context 与 Instance 已创建并管理。
+- GLFW 必需 Instance Extensions 已实现支持性检查。
+- 尚未启用 Vulkan Validation Layers。
+- 尚未创建 Physical Device、Logical Device、Surface 或 Swapchain。
+- `Core` 暂无需要提前抽象的 Vulkan 模块。
+- 当前无未解决的 P0 / P1 问题。
 
-**下一步：** [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)。在 `HelloTriangle` 中正式理解和创建 `vk::raii::Context`、`vk::raii::Instance`，仍不提前实现后续 Validation、Device 或 Swapchain。
+**最近验证：**
 
-**进度维护原则：** 每节的详细实现和验收结论只在对应章节文件修改；本节只同步最新完成的小节、下一任务、最近审查 Commit 和里程碑结果，防止再次膨胀或出现互相矛盾的记录。
+- Debug / Release Clean Build 成功。
+- Debug / Release 运行后退出码均为 0。
+- Instance 的创建及扩展检查逻辑已通过 GitHub 静态审查。
+- MSVC C4819 编码警告已通过本地 CMake 配置调整解决。
+- 本地 CMake 修正与本次文档更新将统一提交 GitHub，随后复核最终 Commit。
+
+**下一步：**
+
+[03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
+
+下一阶段重点：
+
+- Vulkan Instance Layer 模型。
+- `VK_LAYER_KHRONOS_validation`。
+- `VK_EXT_debug_utils`。
+- Debug Messenger。
+- Debug Callback。
+- Validation Severity / Message Type。
+- Debug / Release 验证策略。
+- Validation 错误定位与 VUID 查询。
+
+继续在现有 `HelloTriangle` Sandbox 中渐进实现，不提前进入 Physical Device、Logical Device 或 Swapchain。
+
+**进度维护原则：**
+
+- 详细教学任务和验收记录保存在对应的 `Docs/Roadmap/` 章节文件中。
+- 本学习地图只同步已完成小节、当前学习目标、里程碑与最近审查基线。
+- M1 First Triangle 尚未完成。
+- 后续小节必须完成对应验收后才能更新完成状态。
 
 ## 学习与 Git 约定
 

@@ -44,3 +44,7 @@ if(WIN32)
         user32 gdi32 shell32
     )
 endif()
+
+if(MSVC)
+    target_compile_options(HelloTriangle PRIVATE /utf-8)
+endif()
