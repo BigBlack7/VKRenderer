@@ -43,6 +43,10 @@ private:
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         mWindow = glfwCreateWindow(kWindowWidth, kWindowHeight, "Vulkan", nullptr, nullptr);
+        if (!mWindow)
+        {
+            throw std::runtime_error("Failed to create GLFW window");
+        }
     }
 
     void initVulkan() {}
