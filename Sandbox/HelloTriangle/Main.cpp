@@ -67,6 +67,20 @@ private:
     {
         createInstance();
         setupDebugMessenger();
+
+        if (kEnableValidationLayers)
+        {
+            vk::DebugUtilsMessengerCallbackDataEXT data{
+                .pMessageIdName = "VKRenderer-SelfTest",
+                .messageIdNumber = 1,
+                .pMessage = "Debug Messenger callback test"};
+
+            mInstance.submitDebugUtilsMessageEXT(
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
+                vk::DebugUtilsMessageTypeFlagsEXT{
+                    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral},
+                data);
+        }
     }
 
     void mainLoop()
@@ -89,21 +103,40 @@ private:
 
     void createInstance()
     {
-        // 获取所需的 Extension 列表及其数量
-        std::vector<const char *> extensions = getRequiredInstanceExtensions();
+        // 获取所需的 Extension 列表及其数量, 并检查当前运行环境是否支持这些 Extension, 缺少任何 Extension 则抛出异常
+        const std::vector<const char *> extensions = getRequiredInstanceExtensions();
+        const std::vector<vk::ExtensionProperties> availableExtensions = mContext.enumerateInstanceExtensionProperties();
+        for (const char *required : extensions)
+        {
+            const bool supported = std::ranges::any_of(
+                availableExtensions, [required](const vk::ExtensionProperties &extension)
+                { return std::strcmp(extension.extensionName, required) == 0; });
+
+            if (!supported)
+            {
+                throw std::runtime_error(std::string("Missing required Vulkan instance extension: ") + required);
+            }
+        }
 
         // 获取当前运行环境可枚举的 Instance Layer 信息并检查是否包含所需的验证层, 缺少任何验证层则抛出异常
-        const std::vector<vk::LayerProperties> availableLayers = mContext.enumerateInstanceLayerProperties();
-        const std::vector<const char *> kValidationLayers{"VK_LAYER_KHRONOS_validation"};
-        for (const char *layerName : kValidationLayers)
+        std::vector<const char *> requiredLayers{};
+        if (kEnableValidationLayers)
         {
-            const bool layerFound = std::ranges::any_of(
-                availableLayers, [layerName](const vk::LayerProperties &layer)
-                { return std::strcmp(layer.layerName, layerName) == 0; });
-
-            if (!layerFound)
+            requiredLayers.emplace_back("VK_LAYER_KHRONOS_validation");
+        }
+        if (!requiredLayers.empty())
+        {
+            const std::vector<vk::LayerProperties> availableLayers = mContext.enumerateInstanceLayerProperties();
+            for (const char *required : requiredLayers)
             {
-                throw std::runtime_error(std::string("Missing required Vulkan validation layer: ") + layerName);
+                const bool layerFound = std::ranges::any_of(
+                    availableLayers, [required](const vk::LayerProperties &layer)
+                    { return std::strcmp(layer.layerName, required) == 0; });
+
+                if (!layerFound)
+                {
+                    throw std::runtime_error(std::string("Missing required Vulkan validation layer: ") + required);
+                }
             }
         }
 
@@ -116,10 +149,10 @@ private:
 
         vk::InstanceCreateInfo createInfo{
             .pApplicationInfo = &appInfo,
-            .enabledLayerCount = static_cast<uint32_t>(kValidationLayers.size()),
-            .ppEnabledLayerNames = kValidationLayers.data(),
-            .enabledExtensionCount = (uint32_t)extensions.size(),
-            .ppEnabledExtensionNames = std::move(extensions.data())};
+            .enabledLayerCount = static_cast<uint32_t>(requiredLayers.size()),
+            .ppEnabledLayerNames = requiredLayers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+            .ppEnabledExtensionNames = extensions.data()};
 
         mInstance = vk::raii::Instance(mContext, createInfo);
     }
@@ -135,23 +168,6 @@ private:
         {
             throw std::runtime_error("Failed to get required GLFW extensions");
         }
-
-        // 检查所需的扩展是否可用, 缺少任何扩展则抛出异常
-        const std::vector<vk::ExtensionProperties> availableExtensions = mContext.enumerateInstanceExtensionProperties();
-        for (uint32_t i = 0; i < glfwExtensionCount; ++i)
-        {
-            const char *required = glfwExtensions[i];
-
-            const bool supported = std::ranges::any_of(
-                availableExtensions, [required](const vk::ExtensionProperties &extension)
-                { return std::strcmp(extension.extensionName, required) == 0; });
-
-            if (!supported)
-            {
-                throw std::runtime_error(std::string("Missing required Vulkan instance extension: ") + required);
-            }
-        }
-
         // 将 GLFW 所需的扩展添加到 extensions 向量中
         extensions.insert(extensions.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
 
@@ -160,15 +176,12 @@ private:
         {
             extensions.emplace_back(vk::EXTDebugUtilsExtensionName);
         }
-
         return extensions;
     }
 
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
-        vk::DebugUtilsMessageSeverityFlagBitsEXT severity,
-        vk::DebugUtilsMessageTypeFlagsEXT type,
-        const vk::DebugUtilsMessengerCallbackDataEXT *callbackData,
-        void *userData)
+        vk::DebugUtilsMessageSeverityFlagBitsEXT severity, vk::DebugUtilsMessageTypeFlagsEXT type,
+        const vk::DebugUtilsMessengerCallbackDataEXT *callbackData, void *userData)
     {
         (void *)userData; // Unused parameter
         std::cerr << "Type: " << vk::to_string(type) << ", Severity: " << vk::to_string(severity) << ", Message: " << callbackData->pMessage << std::endl;
