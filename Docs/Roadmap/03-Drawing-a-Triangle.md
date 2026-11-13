@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0.0 Base Code、03.0.1 Instance 已通过验收。
-- **当前小节：** 03.0.2 Validation Layers，尚未开始。
+- **当前状态：** 03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers 已通过验收。
+- **当前小节：** 03.0.3 Physical Devices and Queue Families，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 保留 `EnvironmentCheck`，不提前向 Core 引入 Window、Renderer、VulkanContext 等抽象。
@@ -20,7 +20,7 @@
 
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
-| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | Base Code、Instance 已完成；Validation Layers 下一步 |
+| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | Base Code、Instance、Validation Layers 已完成；Physical Devices 下一步 |
 | [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 待开始 |
 | [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
@@ -32,28 +32,35 @@
 
 - [03.0.0 Base Code](03-0-Setup.md#lesson-03-0-0)
 - [03.0.1 Instance](03-0-Setup.md#lesson-03-0-1)
+- [03.0.2 Validation Layers](03-0-Setup.md#lesson-03-0-2)
 
 **下一小节：**
 
-- [03.0.2 Validation Layers](03-0-Setup.md#lesson-03-0-2)
+- [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
 
 **最近代码审查：**
 
-- Instance 首次实现 Commit：
-  `832810c00ba809a9c4ebf39423c44f3a9cfdd5da`
-- Instance 修复与最终代码审查 Commit：
-  `80e4a23f09b36535ae51bb32b1cd93dc84d4f7b7`
+- Validation Layers 首次实现 Commit：
+  `eeb5141c09e51956b1d0ab275f1bf7d476c34905`
+- Validation Layers 修复及第二轮 Code Review Commit：
+  `47c86e00abdbff4b651355c4174ca344683ef27c`
+- 真实 VUID 实验已通过本地验证。
+- 正式清理版本将在本次文档更新后统一提交复核。
 
 **当前工程状态：**
 
 - GLFW 窗口与事件循环已完成。
 - Vulkan-Hpp RAII Context 与 Instance 已建立。
-- GLFW required Instance Extensions 已实现检查。
-- Instance 生命周期符合当前学习阶段要求。
-- Debug / Release 编译运行通过。
-- C4819 编码警告已在本地解决，待统一提交复核。
+- GLFW required Instance Extensions 已完成检查。
+- Debug 构建已配置 `VK_LAYER_KHRONOS_validation`。
+- Debug 构建已配置 `VK_EXT_debug_utils`。
+- Debug Messenger 与 Debug Callback 已实现。
+- Debug Messenger 消息通道自测通过。
+- 真实 Vulkan Validation VUID 实验通过。
+- Debug / Release 策略符合当前项目约定。
+- Debug Messenger 的生命周期由 RAII 管理。
 - 无未解决的 P0 / P1 问题。
-- 尚未创建 Vulkan Debug Messenger、Physical Device、Logical Device 或 Swapchain。
+- 尚未创建 Physical Device、Logical Device 或 Swapchain。
 
 ## 本章工程约定
 
@@ -64,6 +71,7 @@
 - 不提前添加复杂 Renderer、Manager、RHI 或其他通用框架。
 - 只有出现实际复用需求时才讨论 Core 抽象。
 - 不将正常运行等同于 Vulkan Validation 或规范正确性。
+- 测试中故意违反 Vulkan 规范的调用不得保留在正式代码中。
 - 每个实践小节按约定完成本地构建验证和 GitHub Code Review。
 
 详细任务与验收记录以对应教学单元文件为准。

@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
-- **刚完成：** [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)
+- **当前学习目标：** [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)
+- **刚完成：** [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -30,7 +30,7 @@
 
 ### Phase 1 — Drawing a Triangle
 
-- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0 Base Code、03.0.1 Instance 已完成）
+- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers 已完成）
   - [03.0 — Setup](Roadmap/03-0-Setup.md)
   - [03.1 — Presentation](Roadmap/03-1-Presentation.md)
   - [03.2 — Graphics Pipeline Basics](Roadmap/03-2-Graphics-Pipeline-Basics.md)
@@ -253,7 +253,7 @@ VKRenderer/
 
 ## 6. 当前进度
 
-**记录日期：2026-11-11。**
+**记录日期：2026-11-13。**
 
 当前按照 Khronos Vulkan Tutorial（latest）推进。
 
@@ -266,7 +266,8 @@ Phase 0 — World View & Environment
 Phase 1 — Drawing a Triangle   [IN PROGRESS]
   03.0.0 Base Code             [COMPLETED]
   03.0.1 Instance              [COMPLETED]
-  03.0.2 Validation Layers     ← NEXT / NOT STARTED
+  03.0.2 Validation Layers     [COMPLETED]
+  03.0.3 Physical Devices      ← NEXT / NOT STARTED
 
 M1 First Triangle              [IN PROGRESS]
 ```
@@ -276,61 +277,73 @@ M1 First Triangle              [IN PROGRESS]
 - [00 Introduction](Roadmap/00-Introduction.md)：2026-10-09，理论验收通过。
 - [01 Overview](Roadmap/01-Overview.md)：2026-11-10，理论验收通过。
 - [02 Development Environment](Roadmap/02-Development-Environment.md)：2026-11-10，M0 最终验收通过。
-- [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，理论、代码及 GitHub Review 通过。
-- [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)：2026-11-11，理论、Instance 创建、扩展检查、RAII 生命周期及 GitHub Review 通过。
+- [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，理论、实现、编译运行与 GitHub Review 通过。
+- [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)：2026-11-11，Instance 创建、扩展检查、RAII 生命周期及 GitHub Review 通过。
+- [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 Validation VUID 实验及阶段性 GitHub Review 通过；最终清理版本待统一提交复核。
 
 **当前工程基线：**
 
 - GitHub：`BigBlack7/VKRenderer`。
 - 默认分支：`main`。
-- 学习文档重构 Commit：`bdd17da552bcc16306024f3d3985557c93b42bdb`。
-- 最近完成代码审查的 Commit：`80e4a23f09b36535ae51bb32b1cd93dc84d4f7b7`。
-- 当前工作环境：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
+- 最近一次代码审查 Commit：`47c86e00abdbff4b651355c4174ca344683ef27c`。
+- 当前技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
 - Vulkan SDK / Loader：1.4.357。
 - GLFW：3.4。
 - Slang：2026.13.1。
-- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU，已确认支持 Vulkan 1.4。
+- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
 - `EnvironmentCheck` 继续作为 M0 环境验证 Sandbox 保留。
 - `HelloTriangle` 为 M1 正式实践 Sandbox。
 - GLFW 窗口、事件循环及异常边界已完成。
-- Vulkan-Hpp RAII Context 与 Instance 已创建并管理。
-- GLFW 必需 Instance Extensions 已实现支持性检查。
-- 尚未启用 Vulkan Validation Layers。
+- Vulkan-Hpp RAII Context 与 Instance 已创建。
+- GLFW 必需 Instance Extensions 已完成检查。
+- Vulkan Validation Layer 已完成 Debug 构建配置。
+- `VK_EXT_debug_utils` 已在 Debug 配置中启用。
+- Debug Messenger 与 Debug Callback 已完成实现。
+- Debug Messenger 的 RAII 生命周期已通过静态审查。
+- 已通过受控实验验证真实 Vulkan VUID 诊断。
 - 尚未创建 Physical Device、Logical Device、Surface 或 Swapchain。
 - `Core` 暂无需要提前抽象的 Vulkan 模块。
 - 当前无未解决的 P0 / P1 问题。
 
 **最近验证：**
 
-- Debug / Release Clean Build 成功。
-- Debug / Release 运行后退出码均为 0。
-- Instance 的创建及扩展检查逻辑已通过 GitHub 静态审查。
-- MSVC C4819 编码警告已通过本地 CMake 配置调整解决。
-- 本地 CMake 修正与本次文档更新将统一提交 GitHub，随后复核最终 Commit。
+- Debug / Release 编译与运行成功。
+- Debug 构建中的自定义 Debug Utils 消息能够触发 Callback。
+- Release 构建按应用配置不显式启用 Validation Layer，也不创建 Debug Messenger。
+- 使用无效 `messageSeverity = 0` 成功触发真实 Validation Error。
+- 目标 VUID：`VUID-vkSubmitDebugUtilsMessageEXT-messageSeverity-parameter`。
+- 实验进程退出码为 0。
+- 临时测试代码已由开发者确认移除。
+- 最终清理代码与本次文档更新将统一提交 GitHub 复核。
+- 不把成功运行或无 Validation Error 等同于程序完全正确。
 
 **下一步：**
 
-[03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
+[03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)
 
 下一阶段重点：
 
-- Vulkan Instance Layer 模型。
-- `VK_LAYER_KHRONOS_validation`。
-- `VK_EXT_debug_utils`。
-- Debug Messenger。
-- Debug Callback。
-- Validation Severity / Message Type。
-- Debug / Release 验证策略。
-- Validation 错误定位与 VUID 查询。
+- Physical Device 与 Logical Device 的职责区别。
+- 枚举可用 Physical Devices。
+- Device Properties。
+- Device Features。
+- Device Extensions。
+- Queue Family Properties。
+- Graphics / Compute / Transfer Queue Families。
+- GPU Suitability 与设备选择策略。
+- Vulkan-Hpp RAII 的 Physical Device 查询方式。
+- 设备能力与 API Version 的关系。
 
-继续在现有 `HelloTriangle` Sandbox 中渐进实现，不提前进入 Physical Device、Logical Device 或 Swapchain。
+继续在现有 `HelloTriangle` Sandbox 中渐进实现。
+
+不提前创建 Logical Device、Window Surface 或 Swapchain。
 
 **进度维护原则：**
 
-- 详细教学任务和验收记录保存在对应的 `Docs/Roadmap/` 章节文件中。
-- 本学习地图只同步已完成小节、当前学习目标、里程碑与最近审查基线。
+- 每个小节的详细实现、问题修复及验收记录保存在对应章节文件。
+- 本学习地图只维护当前任务、已验收小节、工程基线与里程碑状态。
 - M1 First Triangle 尚未完成。
-- 后续小节必须完成对应验收后才能更新完成状态。
+- 下一小节通过独立验收后，才能继续推进学习进度。
 
 ## 学习与 Git 约定
 

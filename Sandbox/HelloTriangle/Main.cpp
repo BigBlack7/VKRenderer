@@ -67,20 +67,6 @@ private:
     {
         createInstance();
         setupDebugMessenger();
-
-        if (kEnableValidationLayers)
-        {
-            vk::DebugUtilsMessengerCallbackDataEXT data{
-                .pMessageIdName = "VKRenderer-SelfTest",
-                .messageIdNumber = 1,
-                .pMessage = "Debug Messenger callback test"};
-
-            mInstance.submitDebugUtilsMessageEXT(
-                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
-                vk::DebugUtilsMessageTypeFlagsEXT{
-                    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral},
-                data);
-        }
     }
 
     void mainLoop()

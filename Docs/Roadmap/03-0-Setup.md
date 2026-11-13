@@ -333,17 +333,240 @@
 
 ## 03.0.2 — Validation Layers
 
-- [ ] Vulkan Layer 模型
-- [ ] `VK_LAYER_KHRONOS_validation`
-- [ ] Debug Utils Extension
-- [ ] Debug Messenger
-- [ ] Severity / Message Type
-- [ ] Debug Callback
-- [ ] Debug / Release validation 策略
-- [ ] 使用 vkconfig 辅助调试
+- [x] Vulkan Layer 模型
+  - 理解 Vulkan Loader、Layer 与 ICD 的调用关系
+  - 理解 Vulkan Valid Usage Conditions
+  - 区分 Vulkan 规范检查与 C++ 内存安全检查
+  - 理解 Validation Layer 的能力边界
+- [x] `VK_LAYER_KHRONOS_validation`
+  - 使用 `vk::raii::Context` 枚举 Instance Layers
+  - 检查所需 Validation Layer 是否可用
+  - 根据 Debug / Release 配置决定是否启用
+  - 使用 `vk::InstanceCreateInfo` 配置 Instance Layers
+- [x] Debug Utils Extension
+  - 理解 `VK_EXT_debug_utils` 的作用
+  - 区分 Instance Layer 与 Instance Extension
+  - 在 Debug 构建中添加 Debug Utils Extension
+  - 合并 GLFW 与 Debug Utils 所需扩展
+  - 验证全部所需 Instance Extensions 是否受支持
+- [x] Debug Messenger
+  - 使用 `vk::DebugUtilsMessengerCreateInfoEXT`
+  - 配置 Severity 与 Message Type 过滤条件
+  - 创建 `vk::raii::DebugUtilsMessengerEXT`
+  - 理解 Messenger 与 Instance 的依赖关系
+  - 保证 Messenger 先于 Instance 析构
+- [x] Severity / Message Type
+  - 区分消息严重程度与消息类别
+  - 理解 Verbose、Info、Warning、Error
+  - 理解 General、Validation、Performance
+  - 理解 Severity / Message Type 组合过滤机制
+- [x] Debug Callback
+  - 实现符合 Vulkan 调用约定的静态回调函数
+  - 读取并输出诊断消息
+  - 正常返回 `VK_FALSE`
+  - 理解回调不能调用 Vulkan 命令的约束
+  - 理解回调可能在 Vulkan API 调用路径中被调用
+  - 区分应用主动提交的诊断消息与 Validation Layer 生成的消息
+- [x] Debug / Release Validation 策略
+  - 使用 `NDEBUG` 控制显式 Validation 配置
+  - Debug：启用 Validation Layer 与 Debug Messenger
+  - Release：不显式启用 Validation Layer，不创建 Debug Messenger
+  - 验证 Debug / Release 构建和运行行为
+- [x] Vulkan Validation 诊断实验
+  - 验证 Debug Messenger 回调通道
+  - 通过有效 API 调用提交自定义测试消息
+  - 通过受控无效参数触发真实 Validation Error
+  - 阅读 Severity、Message Type 与 VUID
+  - 根据 VUID 查询 Vulkan Specification
+  - 删除临时实验代码并恢复正常程序
+- [x] vkconfig 辅助调试
+  - 理解 vkconfig 的定位与用途
+  - 当前阶段不强制使用 vkconfig
+  - GPU-Assisted Validation 等高级功能留待实际需要时学习
 
 **实践：**
-故意制造一个 Validation 错误并读懂其消息。
+
+在现有 `HelloTriangle` 中建立 Vulkan Validation 诊断机制。
+
+已完成：
+
+- 创建并管理 `vk::raii::DebugUtilsMessengerEXT`。
+- 添加 Debug / Release Validation 开关。
+- 在 Debug 构建中启用 `VK_LAYER_KHRONOS_validation`。
+- 在 Debug 构建中启用 `VK_EXT_debug_utils`。
+- 验证所需 Instance Layers 与 Extensions 是否受支持。
+- 将扩展收集与扩展检查职责分离。
+- 实现静态 Debug Callback。
+- 输出消息类型、严重程度与消息内容。
+- 使用 RAII 保证 Messenger 正确销毁。
+- 通过自定义消息验证 Callback 通道。
+- 通过真实 VUID 实验验证 Validation Layer 的诊断能力。
+- 完成实验后移除临时测试代码。
+
+**工程设计：**
+
+- 继续保留 `HelloTriangleApplication` 结构。
+- 保留 `createInstance()` 作为 Instance 创建入口。
+- 使用 `getRequiredInstanceExtensions()` 收集所需扩展。
+- 在 `createInstance()` 中统一检查最终扩展列表。
+- 使用 `setupDebugMessenger()` 配置诊断回调。
+- `initVulkan()` 按顺序调用 `createInstance()` 与 `setupDebugMessenger()`。
+- Context、Instance 与 Debug Messenger 直接由 Application 持有。
+- 成员声明顺序为 Context → Instance → Debug Messenger。
+- 析构顺序为 Debug Messenger → Instance → Context。
+- 不手动销毁 RAII Vulkan 对象。
+- 不提前引入 VulkanContext、Renderer 或 DebugManager。
+- 不提前实现 Physical Device、Logical Device、Surface 或 Swapchain。
+
+**GitHub Code Review：**
+
+首次实现 Commit：
+
+`eeb5141c09e51956b1d0ab275f1bf7d476c34905`
+
+修复与第二轮审查 Commit：
+
+`47c86e00abdbff4b651355c4174ca344683ef27c`
+
+第一轮审查发现：
+
+1. P1：Release 构建仍然显式启用了 Validation Layer。
+   - 原实现无条件传入 Validation Layer 列表。
+   - Debug / Release 开关未正确作用于 `enabledLayerCount`。
+   - 修复：根据 `kEnableValidationLayers` 构造实际需要启用的 Layer 列表。
+   - Debug 显式启用 Validation，Release 不显式启用 Validation。
+
+2. P2：新增 Debug Utils Extension 后未检查其支持情况。
+   - 原实现只检查 GLFW 返回的扩展。
+   - 修复：统一检查完整的 Instance Extension 列表。
+
+3. P2：对 `extensions.data()` 使用了不必要的 `std::move()`。
+   - `data()` 返回裸指针，不涉及容器所有权转移。
+   - 修复：直接使用 `extensions.data()`。
+
+第二轮审查结果：
+
+- P1 已修复。
+- 两项 P2 已修复。
+- Debug / Release 配置逻辑正确。
+- 所需扩展检查覆盖 GLFW 和 Debug Utils。
+- Debug Callback 的签名、过滤条件与返回值正确。
+- Debug Messenger 的 RAII 生命周期正确。
+- 未发现新的 P0 / P1 问题。
+- GitHub 静态代码审查通过。
+
+**编译与运行验证（2026-11-12）：**
+
+- Debug Clean Build 成功。
+- Release Clean Build 成功。
+- Debug 程序正常运行。
+- Release 程序正常运行。
+- Debug / Release 退出码均为 0。
+- 编译日志未出现新的 MSVC 警告。
+- Debug 能够接收自定义测试消息。
+- Release 按应用配置不创建 Debug Messenger。
+
+**Debug Messenger 自测：**
+
+使用 `submitDebugUtilsMessageEXT()` 主动提交合法测试消息。
+
+实际输出：
+
+```text
+Type: { General }, Severity: Warning, Message: Debug Messenger callback test
+```
+
+验证结果：
+
+- Debug Utils 消息通道工作正常。
+- Debug Messenger 的消息过滤条件正确。
+- Debug Callback 能够读取并输出消息。
+- 该测试消息由应用程序主动提交。
+- 此实验不能单独证明 Validation Layer 检测到了规范违规。
+
+**真实 Validation VUID 实验（2026-11-13）：**
+
+实验 API：
+
+`vkSubmitDebugUtilsMessageEXT`
+
+故意传入的无效参数：
+
+`messageSeverity = 0`
+
+对应 Vulkan Valid Usage ID：
+
+`VUID-vkSubmitDebugUtilsMessageEXT-messageSeverity-parameter`
+
+实际输出：
+
+```text
+Type: { Validation }, Severity: Error, Message: vkSubmitDebugUtilsMessageEXT(): messageSeverity is zero.
+The Vulkan spec states: messageSeverity must be a valid VkDebugUtilsMessageSeverityFlagBitsEXT value
+```
+
+规范位置：
+
+https://docs.vulkan.org/spec/latest/chapters/debugging.html#VUID-vkSubmitDebugUtilsMessageEXT-messageSeverity-parameter
+
+实验结果：
+
+- Debug 构建成功。
+- Validation Layer 检测到无效 Severity 参数。
+- Debug Messenger 正确转发诊断消息。
+- Debug Callback 输出 Severity、Type 与具体错误。
+- 诊断内容与 Vulkan Specification 中对应 VUID 一致。
+- 实验进程退出码为 0。
+- 理解 Validation Error 不必然使应用程序立即退出。
+- 理解自定义消息与真实 Validation 诊断的本质区别。
+- 实验完成后，开发者已确认删除临时无效调用代码。
+- 开发者已确认恢复后的正常程序运行无异常。
+
+说明：
+
+- 真实 VUID 实验在本地完成，不保留故意违反 Vulkan 规范的调用。
+- GitHub Commit `47c86e00` 包含阶段性的合法消息自测代码。
+- 清理后的正式代码将与本次学习文档统一提交，随后复核。
+- 本节的运行证据由开发者提供，GitHub 审查为静态代码审查。
+
+**原理理解验收（2026-11-13）：**
+
+四道原理题及补充理解检查全部通过。
+
+已理解：
+
+1. Validation Layer、Debug Utils Extension 与 Debug Messenger 的职责区别。
+2. Severity 与 Message Type 的不同含义。
+3. Debug Callback 的调用约定和 `VK_FALSE` 返回值要求。
+4. Debug Messenger 与 Instance 的生命周期依赖。
+5. 普通 Messenger 无法保证捕获其注册前的 Instance 创建诊断。
+6. 可通过 `VkInstanceCreateInfo::pNext` 连接 Debug Messenger 创建信息。
+7. 合法自定义消息不能证明 Validation Layer 检测到了规范错误。
+8. VUID 是 Vulkan 有效使用条件的标识符。
+9. Validation Layer 报告的是应用程序违反规范的行为，而不是验证层自身出错。
+10. 没有 Validation Error 不等于 Vulkan 程序完全正确。
+
+**最终验收结论（2026-11-13）：**
+
+- 原理理解通过。
+- Validation Layer 配置通过。
+- Debug / Release 策略通过。
+- Debug Utils Extension 检查通过。
+- Debug Messenger 创建与 RAII 生命周期审查通过。
+- Debug Callback 功能验证通过。
+- 真实 Validation VUID 实验通过。
+- P0 / P1 问题已全部解决。
+- 不需要新增 Core 抽象。
+- 本地测试代码已由开发者确认清理。
+- 正式清理版本等待统一 GitHub Commit 复核。
+
+**小节状态：已完成（理论、实现、Debug Messenger 自测、真实 VUID 实验及阶段性 GitHub Code Review 通过）。**
+
+**下一小节：**
+
+03.0.3 — Physical Devices and Queue Families
+
+在正式进入下一小节前，先完成本节最终代码与文档的统一提交和复核。
 
 ---
 
