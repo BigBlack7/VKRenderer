@@ -200,7 +200,7 @@ private:
     void pickPhysicalDevice()
     {
         // 枚举-筛选-保存可用的物理设备, 并选择一个合适的物理设备
-        const std::vector<vk::raii::PhysicalDevice> physicalDevices = mInstance.enumeratePhysicalDevices();
+        std::vector<vk::raii::PhysicalDevice> physicalDevices = mInstance.enumeratePhysicalDevices();
         if (physicalDevices.empty())
         {
             throw std::runtime_error("Failed to find GPUs with Vulkan support");
@@ -261,19 +261,12 @@ private:
         std::cout << "===================================================================\n";
 #endif
 
-        // 检查物理设备是否支持所需的队列族, 需要至少支持图形、计算和传输队列
+        // 检查物理设备是否支持所需的队列族, 需要至少支持图形队列
         const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
                                                           { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eGraphics); });
-
-        const bool supportsCompute = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
-                                                         { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eCompute); });
-
-        const bool supportsTransfer = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
-                                                          { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eTransfer); });
-
-        if (!(supportsGraphics && supportsCompute && supportsTransfer))
+        if (!supportsGraphics)
         {
-            std::cerr << "Device does not support required queue families (Graphics, Compute, Transfer)\n";
+            std::cerr << "Device does not support required queue families (Graphics)\n";
             return false;
         }
 
