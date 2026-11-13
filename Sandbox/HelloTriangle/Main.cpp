@@ -11,6 +11,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <utility>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -45,6 +46,7 @@ private:
     vk::raii::Context mContext;
     vk::raii::Instance mInstance{nullptr};
     vk::raii::DebugUtilsMessengerEXT mDebugMessenger{nullptr};
+    vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
 
     void initWindow()
     {
@@ -67,6 +69,7 @@ private:
     {
         createInstance();
         setupDebugMessenger();
+        pickPhysicalDevice();
     }
 
     void mainLoop()
@@ -192,6 +195,114 @@ private:
             .pfnUserCallback = &debugCallback};
 
         mDebugMessenger = mInstance.createDebugUtilsMessengerEXT(messengerInfo);
+    }
+
+    void pickPhysicalDevice()
+    {
+        // 枚举-筛选-保存可用的物理设备, 并选择一个合适的物理设备
+        const std::vector<vk::raii::PhysicalDevice> physicalDevices = mInstance.enumeratePhysicalDevices();
+        if (physicalDevices.empty())
+        {
+            throw std::runtime_error("Failed to find GPUs with Vulkan support");
+        }
+
+        // 使用 std::ranges::find_if 查找第一个满足 isDeviceSuitable 条件的物理设备, 如果没有找到则抛出异常
+        const auto it = std::ranges::find_if(physicalDevices, [this](const vk::raii::PhysicalDevice &device)
+                                             { return isDeviceSuitable(device); });
+        if (it == physicalDevices.end())
+        {
+            throw std::runtime_error("Failed to find a suitable GPU");
+        }
+        else
+        {
+            std::cout << "Selected GPU: " << it->getProperties().deviceName << std::endl;
+        }
+        mPhysicalDevice = std::move(*it);
+    }
+
+    bool isDeviceSuitable(const vk::raii::PhysicalDevice &device) const
+    {
+        // 检查物理设备是否满足应用程序的需求, 返回 true 表示适合, false 表示不适合
+        const vk::PhysicalDeviceProperties properties = device.getProperties();
+
+#ifndef NDEBUG
+        std::cout << "===================================================================\n";
+        std::cout << "Device Name: " << properties.deviceName << "\n";
+        std::cout << "Device Type: " << vk::to_string(properties.deviceType) << "\n";
+        std::cout << "API Version: " << VK_VERSION_MAJOR(properties.apiVersion) << "."
+                  << VK_VERSION_MINOR(properties.apiVersion) << "."
+                  << VK_VERSION_PATCH(properties.apiVersion) << "\n";
+#endif
+
+        // 检查 Vulkan API 版本是否满足要求, 要求至少支持 Vulkan 1.4
+        const bool supportsRequiredApi = properties.apiVersion >= vk::ApiVersion14;
+        if (!supportsRequiredApi)
+        {
+            std::cerr << "Device does not support required Vulkan API version 1.4\n";
+            return false;
+        }
+
+        const std::vector<vk::QueueFamilyProperties> queueFamilies = device.getQueueFamilyProperties();
+        if (queueFamilies.empty())
+        {
+            std::cerr << "Device has no queue families\n";
+            return false;
+        }
+
+#ifndef NDEBUG
+        std::cout << "Queue Family Count: " << queueFamilies.size() << "\n";
+        for (const auto &queueFamily : queueFamilies)
+        {
+            std::cout << "..............................................................\n";
+            std::cout << "Queue Family Index: " << &queueFamily - &queueFamilies[0] << "\n";
+            std::cout << "Queue Count: " << queueFamily.queueCount << "\n";
+            std::cout << "Queue Flags: " << vk::to_string(queueFamily.queueFlags) << "\n";
+        }
+        std::cout << "===================================================================\n";
+#endif
+
+        // 检查物理设备是否支持所需的队列族, 需要至少支持图形、计算和传输队列
+        const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
+                                                          { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eGraphics); });
+
+        const bool supportsCompute = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
+                                                         { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eCompute); });
+
+        const bool supportsTransfer = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
+                                                          { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eTransfer); });
+
+        if (!(supportsGraphics && supportsCompute && supportsTransfer))
+        {
+            std::cerr << "Device does not support required queue families (Graphics, Compute, Transfer)\n";
+            return false;
+        }
+
+        // 检查物理设备是否支持所需的扩展, 需要至少支持 VK_KHR_swapchain 扩展
+        const std::vector<vk::ExtensionProperties> requiredExtensions = device.enumerateDeviceExtensionProperties();
+        const bool supportsRequiredExtensions = std::ranges::any_of(requiredExtensions, [](const vk::ExtensionProperties &extension)
+                                                                    { return std::strcmp(extension.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0; });
+        if (!supportsRequiredExtensions)
+        {
+            std::cerr << "Device does not support required extension: " << VK_KHR_SWAPCHAIN_EXTENSION_NAME << "\n";
+            return false;
+        }
+
+        // 检查物理设备是否支持所需的特性, 需要至少支持 shaderDrawParameters、dynamicRendering 和 extendedDynamicState 特性
+        const auto features = device.getFeatures2<
+            vk::PhysicalDeviceFeatures2,
+            vk::PhysicalDeviceVulkan11Features,
+            vk::PhysicalDeviceVulkan13Features,
+            vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
+        const bool supportsRequiredFeatures =
+            features.get<vk::PhysicalDeviceVulkan11Features>().shaderDrawParameters &&
+            features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
+            features.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+        if (!supportsRequiredFeatures)
+        {
+            std::cerr << "Device does not support required features: shaderDrawParameters, dynamicRendering, extendedDynamicState\n";
+            return false;
+        }
+        return true;
     }
 };
 
