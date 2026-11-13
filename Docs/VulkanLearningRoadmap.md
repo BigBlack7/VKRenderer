@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)
-- **刚完成：** [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)
+- **当前学习目标：** [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)
+- **刚完成：** [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -30,7 +30,7 @@
 
 ### Phase 1 — Drawing a Triangle
 
-- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers 已完成）
+- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0.0～03.0.3 已完成）
   - [03.0 — Setup](Roadmap/03-0-Setup.md)
   - [03.1 — Presentation](Roadmap/03-1-Presentation.md)
   - [03.2 — Graphics Pipeline Basics](Roadmap/03-2-Graphics-Pipeline-Basics.md)
@@ -267,7 +267,8 @@ Phase 1 — Drawing a Triangle   [IN PROGRESS]
   03.0.0 Base Code             [COMPLETED]
   03.0.1 Instance              [COMPLETED]
   03.0.2 Validation Layers     [COMPLETED]
-  03.0.3 Physical Devices      ← NEXT / NOT STARTED
+  03.0.3 Physical Devices      [COMPLETED]
+  03.0.4 Logical Device        ← NEXT / NOT STARTED
 
 M1 First Triangle              [IN PROGRESS]
 ```
@@ -279,13 +280,14 @@ M1 First Triangle              [IN PROGRESS]
 - [02 Development Environment](Roadmap/02-Development-Environment.md)：2026-11-10，M0 最终验收通过。
 - [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，理论、实现、编译运行与 GitHub Review 通过。
 - [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)：2026-11-11，Instance 创建、扩展检查、RAII 生命周期及 GitHub Review 通过。
-- [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 Validation VUID 实验及阶段性 GitHub Review 通过；最终清理版本待统一提交复核。
+- [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 Validation VUID 实验及阶段性 GitHub Review 通过；最终归档 Commit 77725dda0400f90d5eb92ffb79d61588d541a1c7 已复核通过”。
+- [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)：2026-11-13，理论、Physical Device 枚举、设备适用性检查、Debug/Release 及 GitHub Review 通过。
 
 **当前工程基线：**
 
 - GitHub：`BigBlack7/VKRenderer`。
 - 默认分支：`main`。
-- 最近一次代码审查 Commit：`47c86e00abdbff4b651355c4174ca344683ef27c`。
+- 最近完成代码审查的 Commit：`0e6720684ad983e9532bc3638a9273d6be322b55`。
 - 当前技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
 - Vulkan SDK / Loader：1.4.357。
 - GLFW：3.4。
@@ -301,7 +303,10 @@ M1 First Triangle              [IN PROGRESS]
 - Debug Messenger 与 Debug Callback 已完成实现。
 - Debug Messenger 的 RAII 生命周期已通过静态审查。
 - 已通过受控实验验证真实 Vulkan VUID 诊断。
-- 尚未创建 Physical Device、Logical Device、Surface 或 Swapchain。
+- 已枚举并检查 Physical Devices、Device Properties、Device Features、Device Extensions 和 Queue Families。
+- 已选中 NVIDIA GeForce RTX 4080 Laptop GPU。
+- 已使用 `vk::raii::PhysicalDevice` 保存选中的设备。
+- 尚未创建 Logical Device、实际 Queue、Surface 或 Swapchain。
 - `Core` 暂无需要提前抽象的 Vulkan 模块。
 - 当前无未解决的 P0 / P1 问题。
 
@@ -319,24 +324,9 @@ M1 First Triangle              [IN PROGRESS]
 
 **下一步：**
 
-[03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)
+[03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)
 
-下一阶段重点：
-
-- Physical Device 与 Logical Device 的职责区别。
-- 枚举可用 Physical Devices。
-- Device Properties。
-- Device Features。
-- Device Extensions。
-- Queue Family Properties。
-- Graphics / Compute / Transfer Queue Families。
-- GPU Suitability 与设备选择策略。
-- Vulkan-Hpp RAII 的 Physical Device 查询方式。
-- 设备能力与 API Version 的关系。
-
-继续在现有 `HelloTriangle` Sandbox 中渐进实现。
-
-不提前创建 Logical Device、Window Surface 或 Swapchain。
+下一节重点学习 Logical Device、Device Queue Create Info、Queue Priority、Feature Enable、Device Extension Enable、Graphics Queue 获取及其资源生命周期。
 
 **进度维护原则：**
 

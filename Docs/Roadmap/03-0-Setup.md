@@ -574,16 +574,178 @@ https://docs.vulkan.org/spec/latest/chapters/debugging.html#VUID-vkSubmitDebugUt
 
 ## 03.0.3 — Physical Devices and Queue Families
 
-- [ ] 枚举 Physical Device
-- [ ] Device Properties
-- [ ] Device Features
-- [ ] Device Extensions
-- [ ] Queue Family Properties
-- [ ] Graphics / Compute / Transfer Queue
-- [ ] GPU suitability / selection strategy
+- [x] 枚举 Physical Device
+  - 使用 `vk::raii::Instance::enumeratePhysicalDevices()`
+  - 检查设备集合是否为空
+  - 理解 Physical Device 与 Instance 的生命周期关系
+- [x] Device Properties
+  - 查询设备名称、类型与 Vulkan API Version
+  - 使用 Vulkan 1.4 作为当前项目的最低 API 基线
+  - 区分 SDK 版本与 Physical Device 支持的版本
+- [x] Device Features
+  - 理解支持 Feature 与启用 Feature 的区别
+  - 使用 `getFeatures2()` 和 Vulkan-Hpp StructureChain 查询特性
+  - 检查 `shaderDrawParameters`
+  - 检查 `dynamicRendering`
+  - 检查 `extendedDynamicState`
+- [x] Device Extensions
+  - 枚举 Device Extensions
+  - 检查 `VK_KHR_swapchain`
+  - 区分 Instance Extensions 与 Device Extensions
+- [x] Queue Family Properties
+  - 查询 Queue Family 数量
+  - 输出 Queue Family Index、Queue Count 和 Queue Flags
+  - 理解 Queue Family 与 Queue 的关系
+- [x] Graphics / Compute / Transfer Queue
+  - 理解 Graphics、Compute、Transfer 队列能力
+  - 使用位标志判断队列族能力
+  - 确认当前最低需求是 Graphics Queue Family
+  - 理解 Graphics Queue 不一定支持指定 Surface 的 Present
+  - 理解 Graphics / Compute 队列对传输操作的隐式支持规则
+- [x] GPU Suitability / Selection Strategy
+  - 检查 API Version
+  - 检查 Graphics Queue Family
+  - 检查 Device Extensions
+  - 检查必要的 Device Features
+  - 选中第一个满足全部必要条件的设备
+  - 使用 `std::ranges::find_if`
+  - 使用移动语义保存 `vk::raii::PhysicalDevice`
 
 **实践：**
-打印本机 GPU 与 Queue Family 能力。
+
+在 `HelloTriangle` 中完成 Physical Device 枚举、能力查询与选择。
+
+实现内容：
+
+- 新增 `vk::raii::PhysicalDevice` 成员。
+- 新增 `pickPhysicalDevice()`。
+- 新增 `isDeviceSuitable()`。
+- 枚举全部可用 Physical Devices。
+- 输出 GPU 名称、类型和 API Version。
+- 输出 Queue Family 信息。
+- 检查设备扩展与特性。
+- 选择满足需求的 Physical Device。
+- 使用 Vulkan-Hpp RAII 管理对象生命周期。
+- 未提前创建 Logical Device 或实际 Queue。
+
+**本机设备查询结果：**
+
+| Physical Device | Vulkan API Version | 本次选择结果 |
+|---|---|---|
+| Intel RaptorLake-S Mobile Graphics Controller | 1.3.295 | 不满足 Vulkan 1.4 基线 |
+| Microsoft Direct3D12 (Intel UHD Graphics) | 1.2.359 | 不满足 Vulkan 1.4 基线 |
+| NVIDIA GeForce RTX 4080 Laptop GPU | 1.4.357 | 满足全部必要条件 |
+
+最终选中：
+
+`NVIDIA GeForce RTX 4080 Laptop GPU`
+
+RTX 4080 共枚举出 6 个 Queue Families。
+
+其中 Queue Family 0：
+
+- Queue Count：16
+- Graphics：支持
+- Compute：支持
+- Transfer：支持
+- Sparse Binding：支持
+
+注意：
+
+- 当前尚未查询 Surface Present Support。
+- 当前只保存 Physical Device，不创建 Logical Device。
+- 当前设备选择采用第一个满足全部必要条件的候选设备。
+- Vulkan 1.4 是本项目当前约定的技术基线；官方教程对应代码的最低版本条件为 Vulkan 1.3。
+
+**GitHub Code Review：**
+
+首次实现 Commit：
+
+`8ed6974d8b2aa2075c3aa0d67aba192e8a99889d`
+
+修复 Commit：
+
+`0e6720684ad983e9532bc3638a9273d6be322b55`
+
+第一轮审查发现：
+
+1. P1：设备选择条件对 Queue Family 要求过严。
+   - 错误地将 Graphics、Compute 和显式 Transfer 标志同时作为必要条件。
+   - 当前渲染需求只要求支持 Graphics 的队列族。
+   - Graphics 或 Compute 队列族可以隐式支持传输操作。
+   - 修复：仅检查必要的 Graphics Queue Family。
+
+2. P2：`const` 容器妨碍 RAII Physical Device 的正常移动语义。
+   - 原代码将枚举结果声明为 `const std::vector`。
+   - `std::move(*it)` 因而无法得到可正常移动的非 const 对象。
+   - 修复：移除容器的 `const`，使用移动赋值保存选中对象。
+
+第二轮审查结果：
+
+- P1 已修复。
+- P2 已修复。
+- Device Suitability 条件正确。
+- Physical Device 枚举与能力查询正确。
+- Vulkan-Hpp RAII 生命周期正确。
+- 未发现新的 P0 / P1 问题。
+- GitHub 静态代码审查通过。
+
+**编译与运行验证（2026-11-13）：**
+
+- Debug Clean Build 成功。
+- Release Clean Build 成功。
+- 无新增编译警告。
+- Debug 程序正常运行，退出码为 0。
+- Release 程序正常运行，退出码为 0。
+- 正确枚举多个 Vulkan Physical Devices。
+- 正确排除低于项目 Vulkan 1.4 基线的设备。
+- 正确选中 NVIDIA GeForce RTX 4080 Laptop GPU。
+- 验证日志由开发者提供。
+- GitHub 审查为静态代码审查，不等同于重新在本机运行。
+
+**原理理解验收：**
+
+四道原理题全部通过。
+
+已理解：
+
+1. Physical Device 与 Logical Device 的区别。
+2. Physical Device 不能独立销毁，依赖所属 Instance。
+3. Properties、Features、Extensions 的不同职责。
+4. Feature 支持与启用的区别。
+5. Queue Family 与 Queue 的关系。
+6. Graphics、Compute、Transfer 能力的区别。
+7. Graphics Queue 不保证支持指定 Surface 的 Present。
+8. GPU 选择必须先满足必要条件，不能只按设备类型或性能判断。
+
+**工程设计：**
+
+- 继续使用现有 `HelloTriangleApplication`。
+- Physical Device 直接由 Application 保存。
+- 不新增 DeviceManager 或通用 GPU Selection Framework。
+- 不提前缓存不必要的设备状态。
+- 下一节创建 Logical Device 时再处理 Queue Family Index 和 Queue 创建参数。
+- 不提前实现 Surface 或 Swapchain。
+
+**最终验收结论（2026-11-13）：**
+
+- 原理理解通过。
+- Physical Device 枚举通过。
+- Device Properties 查询通过。
+- Device Features 查询通过。
+- Device Extensions 查询通过。
+- Queue Family 查询通过。
+- GPU Suitability 与 Selection 通过。
+- Debug / Release 本地验证通过。
+- GitHub Code Review 通过。
+- P0 / P1 已全部解决。
+- 本节无需额外架构重构。
+
+**小节状态：已完成（理论、实现、编译运行及 GitHub Code Review 通过）。**
+
+**下一小节：**
+
+03.0.4 — Logical Device and Queues
 
 ---
 

@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers 已通过验收。
-- **当前小节：** 03.0.3 Physical Devices and Queue Families，尚未开始。
+- **当前状态：** 03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers、03.0.3 Physical Devices and Queue Families 已通过验收。
+- **当前小节：** 03.0.4 Logical Device and Queues，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 保留 `EnvironmentCheck`，不提前向 Core 引入 Window、Renderer、VulkanContext 等抽象。
@@ -20,7 +20,7 @@
 
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
-| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | Base Code、Instance、Validation Layers 已完成；Physical Devices 下一步 |
+| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | Base Code、Instance、Validation Layers、Physical Devices 已完成；Logical Device 下一步 |
 | [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 待开始 |
 | [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
@@ -33,19 +33,18 @@
 - [03.0.0 Base Code](03-0-Setup.md#lesson-03-0-0)
 - [03.0.1 Instance](03-0-Setup.md#lesson-03-0-1)
 - [03.0.2 Validation Layers](03-0-Setup.md#lesson-03-0-2)
+- [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
 
 **下一小节：**
 
-- [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
+- [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
 
 **最近代码审查：**
 
-- Validation Layers 首次实现 Commit：
-  `eeb5141c09e51956b1d0ab275f1bf7d476c34905`
-- Validation Layers 修复及第二轮 Code Review Commit：
-  `47c86e00abdbff4b651355c4174ca344683ef27c`
-- 真实 VUID 实验已通过本地验证。
-- 正式清理版本将在本次文档更新后统一提交复核。
+- Physical Device 首次实现 Commit：
+  `8ed6974d8b2aa2075c3aa0d67aba192e8a99889d`
+- Physical Device 修复与最终 Code Review Commit：
+  `0e6720684ad983e9532bc3638a9273d6be322b55`
 
 **当前工程状态：**
 
@@ -59,8 +58,13 @@
 - 真实 Vulkan Validation VUID 实验通过。
 - Debug / Release 策略符合当前项目约定。
 - Debug Messenger 的生命周期由 RAII 管理。
+- Physical Device 枚举、Properties、Features、Extensions 查询已完成。
+- Queue Family 查询与 Graphics 支持检查已完成。
+- Device Suitability 与 GPU Selection 已完成。
+- 已选中 NVIDIA GeForce RTX 4080 Laptop GPU。
+- Physical Device 由 Vulkan-Hpp RAII 对象保存。
+- 尚未创建 Logical Device、实际 Queue 或 Swapchain。
 - 无未解决的 P0 / P1 问题。
-- 尚未创建 Physical Device、Logical Device 或 Swapchain。
 
 ## 本章工程约定
 
