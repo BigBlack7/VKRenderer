@@ -10,18 +10,18 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0.0 Base Code、03.0.1 Instance、03.0.2 Validation Layers、03.0.3 Physical Devices and Queue Families 已通过验收。
-- **当前小节：** 03.0.4 Logical Device and Queues，尚未开始。
+- **当前状态：** 03.0 Setup（Base Code、Instance、Validation Layers、Physical Devices、Logical Device）全部通过验收。
+- **当前小节：** 03.1.0 Window Surface，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
-- **当前约束：** 保留 `EnvironmentCheck`，不提前向 Core 引入 Window、Renderer、VulkanContext 等抽象。
+- **当前约束：** 继续最小必要架构设计，不提前建立通用 RHI 或 Renderer Manager。
 
 ## 本章目录
 
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
-| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | Base Code、Instance、Validation Layers、Physical Devices 已完成；Logical Device 下一步 |
-| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 待开始 |
+| [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
+| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface 下一步 |
 | [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
@@ -34,17 +34,18 @@
 - [03.0.1 Instance](03-0-Setup.md#lesson-03-0-1)
 - [03.0.2 Validation Layers](03-0-Setup.md#lesson-03-0-2)
 - [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
+- [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
 
 **下一小节：**
 
-- [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
+- [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
 
 **最近代码审查：**
 
-- Physical Device 首次实现 Commit：
-  `8ed6974d8b2aa2075c3aa0d67aba192e8a99889d`
-- Physical Device 修复与最终 Code Review Commit：
-  `0e6720684ad983e9532bc3638a9273d6be322b55`
+- Logical Device and Queues 实现及最终 Code Review Commit：
+  `394a3af52b93949e5ac28d1f789525a3d66c6cdc`
+- 03.0 Setup 全部小节已经通过验收。
+- 当前无未解决的 P0 / P1 问题。
 
 **当前工程状态：**
 
@@ -63,8 +64,13 @@
 - Device Suitability 与 GPU Selection 已完成。
 - 已选中 NVIDIA GeForce RTX 4080 Laptop GPU。
 - Physical Device 由 Vulkan-Hpp RAII 对象保存。
-- 尚未创建 Logical Device、实际 Queue 或 Swapchain。
-- 无未解决的 P0 / P1 问题。
+- 已创建 Logical Device。
+- 已启用所需 Device Features 和 `VK_KHR_swapchain`。
+- 已获取 Graphics Queue。
+- Vulkan-Hpp RAII Device 与 Queue 生命周期符合当前阶段要求。
+- Debug / Release 编译运行正常。
+- 尚未创建 Window Surface、Swapchain 或 Image Views。
+- 尚未向 GPU 提交绘制命令。
 
 ## 本章工程约定
 

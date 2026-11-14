@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#include <iterator>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -353,17 +354,6 @@ private:
 
         mDevice = vk::raii::Device(mPhysicalDevice, deviceCreateInfo);
         mGraphicsQueue = vk::raii::Queue(mDevice, graphicsFamilyIndex, 0);
-
-#ifndef NDEBUG
-        if (mDevice != nullptr && mGraphicsQueue != nullptr)
-        {
-            std::cout << "Logical device and graphics queue " << graphicsFamilyIndex << " created successfully\n";
-        }
-        else
-        {
-            std::cerr << "Failed to create logical device or graphics queue\n";
-        }
-#endif
     }
 };
 

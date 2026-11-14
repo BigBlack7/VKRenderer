@@ -753,16 +753,233 @@ RTX 4080 共枚举出 6 个 Queue Families。
 
 ## 03.0.4 — Logical Device and Queues
 
-- [ ] Logical Device
-- [ ] Queue Create Info
-- [ ] Queue Priority
-- [ ] Feature Enable
-- [ ] Extension Enable
-- [ ] 获取 Graphics Queue
-- [ ] Device 与 PhysicalDevice 的职责区别
+- [x] Logical Device
+  - 理解 Physical Device 与 Logical Device 的职责区别
+  - 理解 Logical Device 是应用基于 Physical Device 创建的 Vulkan 设备对象
+  - 使用 `vk::raii::Device` 管理 Logical Device
+  - 理解 Device 创建成功不代表 GPU 已执行绘制命令
+- [x] Queue Create Info
+  - 使用 `getQueueFamilyProperties()` 查询队列族
+  - 动态查找 Graphics Queue Family Index
+  - 使用 `vk::DeviceQueueCreateInfo` 请求一条 Graphics Queue
+  - 区分 Queue Family Index、Queue Index 与 Queue Count
+  - 检查 Queue Family 查找失败情况
+- [x] Queue Priority
+  - 使用有效的 `0.5f` Priority
+  - 理解 Queue Priority 与 GPU 调度的关系
+  - 保证 Priority 数据在 Device 创建调用期间有效
+- [x] Feature Enable
+  - 区分 Feature 支持性查询与实际启用
+  - 使用 Vulkan-Hpp `vk::StructureChain`
+  - 启用 `shaderDrawParameters`
+  - 启用 `dynamicRendering`
+  - 启用 `extendedDynamicState`
+  - 使用 `vk::PhysicalDeviceFeatures2` 连接 Device CreateInfo
+  - 不同时使用非空的 `pEnabledFeatures`
+- [x] Extension Enable
+  - 启用 `VK_KHR_swapchain`
+  - 区分 Instance Extension 与 Device Extension
+  - 理解支持 Extension 不等于已经启用
+- [x] 获取 Graphics Queue
+  - 使用 `vk::raii::Queue`
+  - 正确传入 Device、Graphics Queue Family Index 和 Queue Index
+  - 理解 Queue 在 Device 创建期间创建
+  - 理解 Queue 不需要独立销毁
+- [x] Device 与 PhysicalDevice 的职责区别
+  - 理解 Physical Device 负责能力查询
+  - 理解 Logical Device 负责启用能力及管理后续 Vulkan 设备资源
+  - 理解 Queue 的生命周期依赖所属 Device
+  - 理解 GPU 工作完成与 CPU 对象析构是不同的同步问题
 
 **实践：**
-成功建立能够提交 GPU 工作的 Logical Device + Queue。
+
+在现有 `HelloTriangle` 中创建 Logical Device，并取得 Graphics Queue。
+
+已完成：
+
+- 新增 `vk::raii::Device` 成员。
+- 新增 `vk::raii::Queue` 成员。
+- 新增 `createLogicalDevice()`。
+- 在 `initVulkan()` 中调用 `createLogicalDevice()`。
+- 动态查找 Graphics Queue Family Index。
+- 使用 Queue Create Info 请求一条 Graphics Queue。
+- 设置 Queue Priority 为 `0.5f`。
+- 通过 Vulkan-Hpp StructureChain 启用三项必要 Features。
+- 启用 `VK_KHR_swapchain` Device Extension。
+- 使用 `vk::DeviceCreateInfo` 创建 Logical Device。
+- 成功取得 Graphics Queue。
+- 保留现有 GLFW 窗口和事件循环。
+- 未提前创建 Surface、Swapchain 或 Command Buffer。
+- 未向 GPU 提交绘制工作。
+
+**工程设计：**
+
+- 继续使用 `HelloTriangleApplication`。
+- `mPhysicalDevice` 保存已选中的 Physical Device。
+- `mDevice` 直接由 Application 持有。
+- `mGraphicsQueue` 直接由 Application 持有。
+- 保持 Vulkan-Hpp RAII 对象所有权清晰。
+- 成员声明顺序为 Physical Device → Device → Graphics Queue。
+- Graphics Queue 包装对象先于 Logical Device 析构。
+- Logical Device 先于 Instance 析构。
+- Queue 不需要单独调用 Vulkan 销毁函数。
+- 创建 Device 时使用局部 Queue Create Info、Priority 和 Feature Chain。
+- 创建参数在 `vkCreateDevice` 调用期间保持有效。
+- 当前无 GPU 工作提交，因此不需要提前加入 `device.waitIdle()`。
+- 不新增 DeviceManager、QueueManager 或复杂 Core 抽象。
+
+**GitHub Code Review：**
+
+首次实现 Commit：
+
+`394a3af52b93949e5ac28d1f789525a3d66c6cdc`
+
+审查结果：
+
+- Graphics Queue Family Index 动态查询正确。
+- Queue Create Info 参数正确。
+- Queue Priority 有效。
+- Feature Chain 构造正确。
+- Features 与上节能力检查一致。
+- `VK_KHR_swapchain` Device Extension 启用正确。
+- `vk::DeviceCreateInfo` 的 pNext 使用正确。
+- `pEnabledFeatures` 保持为空。
+- Logical Device 创建方式正确。
+- Graphics Queue 获取方式正确。
+- RAII 对象生命周期正确。
+- 未发现 P0 / P1 问题。
+- GitHub 静态代码审查通过。
+
+非阻断性改进：
+
+1. P2：创建成功后的 Device / Queue 空值判断可以简化。
+   - Vulkan-Hpp RAII 创建失败通常通过异常传播。
+   - 当前额外的 `else` 只输出错误信息，没有中止初始化。
+   - 建议后续简化为成功创建后输出信息。
+
+2. P3：建议显式包含 `<iterator>`。
+   - 当前使用了 `std::distance()`。
+   - MSVC 当前能够正常编译。
+   - 显式包含对应标准库头文件可减少对间接包含的依赖。
+
+以上问题不阻断本节验收，不要求单独提交修复 Commit。
+
+**编译与运行验证（2026-11-14）：**
+
+开发环境：
+
+- Windows x64
+- Visual Studio 2022 / MSVC
+- C++20
+- CMake
+- Vulkan SDK / Loader 1.4.357
+- NVIDIA GeForce RTX 4080 Laptop GPU
+
+验证结果：
+
+- Debug Clean Build 成功。
+- Release Clean Build 成功。
+- 无新增 MSVC 编译警告。
+- Debug 运行正常，退出码为 0。
+- Release 运行正常，退出码为 0。
+- 成功选中 NVIDIA GeForce RTX 4080 Laptop GPU。
+- 成功创建 Logical Device。
+- 成功获取 Graphics Queue。
+- Debug 未报告新的 Validation Error。
+- 本地编译运行证据由开发者提供。
+- GitHub 审查为静态代码审查，不等同于导师实际运行程序。
+
+Debug 关键输出：
+
+```text
+Selected GPU: NVIDIA GeForce RTX 4080 Laptop GPU
+Logical device and graphics queue 0 created successfully
+```
+
+说明：
+
+- Graphics Queue Family Index 由代码动态查询得到。
+- 当前实际选中的 Graphics Queue Family Index 为 0。
+- Queue Index 为 0。
+- 当前创建了 Logical Device 及可用于后续提交工作的 Graphics Queue。
+- 尚未录制或提交 GPU Command Buffer。
+- 尚未验证指定 Window Surface 的 Present Support。
+
+**原理理解验收（2026-11-14）：**
+
+四道原理题全部通过。
+
+已理解：
+
+1. Physical Device 与 Logical Device 的职责区别。
+2. Logical Device 的创建动机。
+3. Queue Create Info 与 Queue Handle 的区别。
+4. Queue Family Index、Queue Index 和 Queue Count 的关系。
+5. 非法 Queue Index 属于违反 Vulkan 有效使用条件，不应简单等同于 C++ 非法地址访问。
+6. Feature 支持性查询与实际启用的区别。
+7. StructureChain 与 Vulkan pNext 结构链的关系。
+8. `VkPhysicalDeviceFeatures2` 与 `pEnabledFeatures` 的使用约束。
+9. Queue 随所属 Logical Device 创建和销毁。
+10. CPU 资源生命周期与 GPU 执行完成必须分别考虑。
+11. Device 销毁前需要保证相关 GPU 工作已经完成。
+
+**最终验收结论（2026-11-14）：**
+
+- 原理理解通过。
+- Graphics Queue Family 查找通过。
+- Queue Create Info 配置通过。
+- Queue Priority 配置通过。
+- Feature Chain 配置通过。
+- Device Extension 启用通过。
+- Logical Device 创建通过。
+- Graphics Queue 获取通过。
+- RAII 生命周期检查通过。
+- Debug / Release 编译运行验证通过。
+- GitHub Code Review 通过。
+- 无未解决 P0 / P1 问题。
+- 不需要新增 Core 架构抽象。
+- 本节正式通过验收。
+
+**小节状态：已完成（理论、实现、编译运行及 GitHub Code Review 通过）。**
+
+**03.0 Setup 阶段总结：**
+
+以下小节均已通过验收：
+
+- 03.0.0 Base Code
+- 03.0.1 Instance
+- 03.0.2 Validation Layers
+- 03.0.3 Physical Devices and Queue Families
+- 03.0.4 Logical Device and Queues
+
+目前 `HelloTriangle` 已具备：
+
+- GLFW Window 与事件循环
+- Vulkan Instance
+- Vulkan Validation Layers
+- Debug Messenger
+- Physical Device
+- Logical Device
+- Graphics Queue
+
+尚未具备：
+
+- Window Surface
+- Swapchain
+- Swapchain Images / Image Views
+- Graphics Pipeline
+- Command Buffer
+- GPU 工作提交与 Present
+
+M1 First Triangle 尚未完成。
+
+**下一教学单元：**
+
+03.1 Presentation
+
+**下一小节：**
+
+03.1.0 — Window Surface
 
 ---
 
