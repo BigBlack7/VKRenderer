@@ -22,6 +22,20 @@ constexpr bool kEnableValidationLayers = false;
 constexpr bool kEnableValidationLayers = true;
 #endif
 
+/*
+Instance
+   |
+   +-- Debug Messenger
+   |
+   +-- Physical Device
+            |
+            v
+       Logical Device
+            |
+            v
+       Graphics Queue
+*/
+
 class HelloTriangleApplication
 {
 public:
@@ -47,6 +61,8 @@ private:
     vk::raii::Instance mInstance{nullptr};
     vk::raii::DebugUtilsMessengerEXT mDebugMessenger{nullptr};
     vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
+    vk::raii::Device mDevice{nullptr};
+    vk::raii::Queue mGraphicsQueue{nullptr};
 
     void initWindow()
     {
@@ -70,6 +86,7 @@ private:
         createInstance();
         setupDebugMessenger();
         pickPhysicalDevice();
+        createLogicalDevice();
     }
 
     void mainLoop()
@@ -296,6 +313,57 @@ private:
             return false;
         }
         return true;
+    }
+
+    void createLogicalDevice()
+    {
+        // 获取支持图形操作的队列族索引, 以及队列信息
+        const std::vector<vk::QueueFamilyProperties> queueFamilies = mPhysicalDevice.getQueueFamilyProperties();
+        const auto it = std::ranges::find_if(queueFamilies, [](const vk::QueueFamilyProperties &family)
+                                             { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eGraphics); });
+        if (it == queueFamilies.end())
+        {
+            throw std::runtime_error("Failed to find a suitable queue family for graphics");
+        }
+        const uint32_t graphicsFamilyIndex = static_cast<uint32_t>(std::distance(queueFamilies.begin(), it));
+
+        const float queuePriority = 0.5f;
+        vk::DeviceQueueCreateInfo queueCreateInfo{
+            .queueFamilyIndex = graphicsFamilyIndex,
+            .queueCount = 1,
+            .pQueuePriorities = &queuePriority};
+
+        // 使用 StructureChain 在创建逻辑设备时启用所需的特性
+        vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
+                           vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+            featureChain = {{},
+                            {.shaderDrawParameters = true},
+                            {.dynamicRendering = true},
+                            {.extendedDynamicState = true}};
+
+        // 指定所需的设备扩展, 这里仅启用 VK_KHR_swapchain 扩展
+        const std::vector<const char *> requiredDeviceExtensions{vk::KHRSwapchainExtensionName};
+
+        vk::DeviceCreateInfo deviceCreateInfo{
+            .pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>(),
+            .queueCreateInfoCount = 1,
+            .pQueueCreateInfos = &queueCreateInfo,
+            .enabledExtensionCount = static_cast<uint32_t>(requiredDeviceExtensions.size()),
+            .ppEnabledExtensionNames = requiredDeviceExtensions.data()};
+
+        mDevice = vk::raii::Device(mPhysicalDevice, deviceCreateInfo);
+        mGraphicsQueue = vk::raii::Queue(mDevice, graphicsFamilyIndex, 0);
+
+#ifndef NDEBUG
+        if (mDevice != nullptr && mGraphicsQueue != nullptr)
+        {
+            std::cout << "Logical device and graphics queue " << graphicsFamilyIndex << " created successfully\n";
+        }
+        else
+        {
+            std::cerr << "Failed to create logical device or graphics queue\n";
+        }
+#endif
     }
 };
 
