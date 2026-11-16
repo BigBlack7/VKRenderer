@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)
-- **刚完成：** [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)
+- **当前学习目标：** [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
+- **刚完成：** [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -265,12 +265,9 @@ Phase 0 — World View & Environment
 
 Phase 1 — Drawing a Triangle   [IN PROGRESS]
   03.0 Setup                  [COMPLETED]
-    03.0.0 Base Code           [COMPLETED]
-    03.0.1 Instance            [COMPLETED]
-    03.0.2 Validation Layers   [COMPLETED]
-    03.0.3 Physical Devices    [COMPLETED]
-    03.0.4 Logical Device      [COMPLETED]
-  03.1.0 Window Surface        ← NEXT / NOT STARTED
+  03.1 Presentation           [IN PROGRESS]
+    03.1.0 Window Surface      [COMPLETED]
+    03.1.1 Swap Chain          ← NEXT / NOT STARTED
 
 M1 First Triangle              [IN PROGRESS]
 ```
@@ -285,12 +282,12 @@ M1 First Triangle              [IN PROGRESS]
 - [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 Validation VUID 实验及阶段性 GitHub Review 通过；最终归档 Commit 77725dda0400f90d5eb92ffb79d61588d541a1c7 已复核通过”。
 - [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)：2026-11-13，理论、Physical Device 枚举、设备适用性检查、Debug/Release 及 GitHub Review 通过。
 - [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)：2026-11-14，理论、Queue Create Info、Feature Chain、Logical Device、Graphics Queue、Debug/Release 及 GitHub Review 通过。
+- [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)：2026-11-16，理论、Surface 创建、Graphics/Present Support、资源生命周期、Debug/Release 和 GitHub Review 通过。
 
 **当前工程基线：**
 
 - GitHub：`BigBlack7/VKRenderer`。
 - 默认分支：`main`。
-- 最近完成代码审查的 Commit：`394a3af52b93949e5ac28d1f789525a3d66c6cdc`。
 - 当前技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
 - Vulkan SDK / Loader：1.4.357。
 - GLFW：3.4。
@@ -298,25 +295,12 @@ M1 First Triangle              [IN PROGRESS]
 - 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
 - `EnvironmentCheck` 继续作为 M0 环境验证 Sandbox 保留。
 - `HelloTriangle` 为 M1 正式实践 Sandbox。
-- GLFW 窗口、事件循环及异常边界已完成。
-- Vulkan-Hpp RAII Context 与 Instance 已创建。
-- GLFW 必需 Instance Extensions 已完成检查。
-- Vulkan Validation Layer 已完成 Debug 构建配置。
-- `VK_EXT_debug_utils` 已在 Debug 配置中启用。
-- Debug Messenger 与 Debug Callback 已完成实现。
-- Debug Messenger 的 RAII 生命周期已通过静态审查。
-- 已通过受控实验验证真实 Vulkan VUID 诊断。
-- 已枚举并检查 Physical Devices、Device Properties、Device Features、Device Extensions 和 Queue Families。
-- 已选中 NVIDIA GeForce RTX 4080 Laptop GPU。
-- 已使用 `vk::raii::PhysicalDevice` 保存选中的设备。
-- 已创建 `vk::raii::Device`。
-- 已创建并取得 `vk::raii::Queue` 包装对象。
-- 已配置 Graphics Queue Family Index 和 Queue Priority。
-- 已通过 Vulkan-Hpp StructureChain 启用必要 Features。
-- 已启用 `VK_KHR_swapchain` Device Extension。
-- 已完成 03.0 Setup 全部小节的理论、实现及 GitHub Code Review。
-- 尚未创建 Window Surface、Swapchain 或 Graphics Pipeline。
-- 尚未录制或提交 GPU 绘制命令。
+- 最近完成代码审查的 Commit：`2302ae2a223882d0b3511f632a3d1b71da04f0bf`。
+- 已创建 `vk::raii::SurfaceKHR`。
+- 已检查 Physical Device 对当前 Surface 的 Presentation Support。
+- 已选中同时支持 Graphics 与 Present 的 Queue Family。
+- 已调整 Surface 与 GLFW Window 的清理顺序。
+- 尚未创建 Swapchain 或 Swapchain Images。
 - 当前无未解决的 P0 / P1 问题。
 
 **最近验证：**
@@ -333,20 +317,11 @@ M1 First Triangle              [IN PROGRESS]
 
 **下一步：**
 
-[03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)
+[03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
 
-下一阶段重点：
-
-- Window System Integration（WSI）。
-- `vk::raii::SurfaceKHR`。
-- GLFW 与 Vulkan Window Surface 的关系。
-- Win32 Surface 与 GLFW 平台抽象的区别。
-- Physical Device 对指定 Surface 的 Presentation Support。
-- Graphics Queue 与 Present Queue 的关系。
-- Vulkan Surface 的所有权与生命周期。
-- 重新审查当前 GLFW Window、Instance、Device 的依赖和销毁顺序。
-
-继续基于现有 `HelloTriangle` 进行最小必要修改，不提前完成 Swapchain。
+重点学习 Surface Capabilities、Surface Format、Present Mode、
+Swap Extent、Swapchain Image Count、Image Sharing Mode，
+以及 Swapchain 创建和资源生命周期。
 
 **进度维护原则：**
 

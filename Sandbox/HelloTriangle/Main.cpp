@@ -350,6 +350,10 @@ private:
             throw std::runtime_error("Failed to find a graphics and present queue family");
         }
 
+#ifndef NDEBUG
+        std::cout << "Graphics/Present Queue Family Index: " << graphicsPresentFamilyIndex.value() << '\n';
+#endif
+
         const float queuePriority = 0.5f;
         vk::DeviceQueueCreateInfo queueCreateInfo{
             .queueFamilyIndex = graphicsPresentFamilyIndex.value(),

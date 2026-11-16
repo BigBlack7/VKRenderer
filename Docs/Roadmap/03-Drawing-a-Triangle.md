@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0 Setup（Base Code、Instance、Validation Layers、Physical Devices、Logical Device）全部通过验收。
-- **当前小节：** 03.1.0 Window Surface，尚未开始。
+- **当前状态：** 03.0 Setup 已全部验收；03.1.0 Window Surface 已通过验收。
+- **当前小节：** 03.1.1 Swap Chain，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 继续最小必要架构设计，不提前建立通用 RHI 或 Renderer Manager。
@@ -21,7 +21,7 @@
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
 | [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
-| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface 下一步 |
+| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface 已完成；Swap Chain 下一步 |
 | [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
@@ -35,16 +35,16 @@
 - [03.0.2 Validation Layers](03-0-Setup.md#lesson-03-0-2)
 - [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
 - [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
+- [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
 
 **下一小节：**
 
-- [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
+- [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
 
 **最近代码审查：**
 
-- Logical Device and Queues 实现及最终 Code Review Commit：
-  `394a3af52b93949e5ac28d1f789525a3d66c6cdc`
-- 03.0 Setup 全部小节已经通过验收。
+- Window Surface 实现与 Code Review Commit：
+  `2302ae2a223882d0b3511f632a3d1b71da04f0bf`
 - 当前无未解决的 P0 / P1 问题。
 
 **当前工程状态：**
@@ -69,7 +69,7 @@
 - 已获取 Graphics Queue。
 - Vulkan-Hpp RAII Device 与 Queue 生命周期符合当前阶段要求。
 - Debug / Release 编译运行正常。
-- 尚未创建 Window Surface、Swapchain 或 Image Views。
+- 已创建 Window Surface，未创建Swapchain 或 Image Views。
 - 尚未向 GPU 提交绘制命令。
 
 ## 本章工程约定
