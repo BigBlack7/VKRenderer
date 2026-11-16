@@ -12,7 +12,8 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
-#include <iterator>
+#include <optional>
+#include <ranges>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -61,6 +62,7 @@ private:
     vk::raii::Context mContext;
     vk::raii::Instance mInstance{nullptr};
     vk::raii::DebugUtilsMessengerEXT mDebugMessenger{nullptr};
+    vk::raii::SurfaceKHR mSurface{nullptr};
     vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
     vk::raii::Device mDevice{nullptr};
     vk::raii::Queue mGraphicsQueue{nullptr};
@@ -86,6 +88,7 @@ private:
     {
         createInstance();
         setupDebugMessenger();
+        createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
     }
@@ -100,6 +103,7 @@ private:
 
     void cleanup() noexcept
     {
+        mSurface.clear(); // 先释放 Surface, 再销毁其对应的 GLFW Window
         if (mWindow)
         {
             glfwDestroyWindow(mWindow);
@@ -215,6 +219,16 @@ private:
         mDebugMessenger = mInstance.createDebugUtilsMessengerEXT(messengerInfo);
     }
 
+    void createSurface()
+    {
+        VkSurfaceKHR surface = VK_NULL_HANDLE;
+        if (glfwCreateWindowSurface(static_cast<VkInstance>(*mInstance), mWindow, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create window surface");
+        }
+        mSurface = vk::raii::SurfaceKHR(mInstance, surface);
+    }
+
     void pickPhysicalDevice()
     {
         // 枚举-筛选-保存可用的物理设备, 并选择一个合适的物理设备
@@ -279,12 +293,12 @@ private:
         std::cout << "===================================================================\n";
 #endif
 
-        // 检查物理设备是否支持所需的队列族, 需要至少支持图形队列
-        const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](const vk::QueueFamilyProperties &family)
-                                                          { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eGraphics); });
-        if (!supportsGraphics)
+        // 检查物理设备是否支持所需的队列族, 需要至少同时支持图形&呈现(现阶段避免跨队列同步)
+        const bool supports = std::ranges::any_of(std::views::iota(size_t{0}, queueFamilies.size()), [&](size_t i)
+                                                  { return (queueFamilies[i].queueFlags & vk::QueueFlagBits::eGraphics) && device.getSurfaceSupportKHR(static_cast<uint32_t>(i), *mSurface); });
+        if (!supports)
         {
-            std::cerr << "Device does not support required queue families (Graphics)\n";
+            std::cerr << "Device does not support required queue families for graphics and present\n";
             return false;
         }
 
@@ -318,19 +332,27 @@ private:
 
     void createLogicalDevice()
     {
-        // 获取支持图形操作的队列族索引, 以及队列信息
+        // 获取支持图形操作&呈现的队列族索引, 以及队列信息
         const std::vector<vk::QueueFamilyProperties> queueFamilies = mPhysicalDevice.getQueueFamilyProperties();
-        const auto it = std::ranges::find_if(queueFamilies, [](const vk::QueueFamilyProperties &family)
-                                             { return static_cast<bool>(family.queueFlags & vk::QueueFlagBits::eGraphics); });
-        if (it == queueFamilies.end())
+        std::optional<uint32_t> graphicsPresentFamilyIndex;
+        for (uint32_t index = 0; index < queueFamilies.size(); ++index)
         {
-            throw std::runtime_error("Failed to find a suitable queue family for graphics");
+            const bool graphics = static_cast<bool>(queueFamilies[index].queueFlags & vk::QueueFlagBits::eGraphics);
+            const bool present = graphics && mPhysicalDevice.getSurfaceSupportKHR(index, *mSurface);
+            if (present)
+            {
+                graphicsPresentFamilyIndex = index;
+                break;
+            }
         }
-        const uint32_t graphicsFamilyIndex = static_cast<uint32_t>(std::distance(queueFamilies.begin(), it));
+        if (!graphicsPresentFamilyIndex)
+        {
+            throw std::runtime_error("Failed to find a graphics and present queue family");
+        }
 
         const float queuePriority = 0.5f;
         vk::DeviceQueueCreateInfo queueCreateInfo{
-            .queueFamilyIndex = graphicsFamilyIndex,
+            .queueFamilyIndex = graphicsPresentFamilyIndex.value(),
             .queueCount = 1,
             .pQueuePriorities = &queuePriority};
 
@@ -353,7 +375,7 @@ private:
             .ppEnabledExtensionNames = requiredDeviceExtensions.data()};
 
         mDevice = vk::raii::Device(mPhysicalDevice, deviceCreateInfo);
-        mGraphicsQueue = vk::raii::Queue(mDevice, graphicsFamilyIndex, 0);
+        mGraphicsQueue = vk::raii::Queue(mDevice, graphicsPresentFamilyIndex.value(), 0);
     }
 };
 
