@@ -26,16 +26,23 @@ constexpr bool kEnableValidationLayers = true;
 
 /*
 Instance
-   |
-   +-- Debug Messenger
-   |
-   +-- Physical Device
+  |
+  +--- Surface -------------------- GLFW Window
+  |        ^
+  |        |
+  |     Swapchain
+  |
+  +--- Physical Device
             |
             v
-       Logical Device
+        Logical Device
             |
-            v
-       Graphics Queue
+            +--- Graphics/Present Queue
+            |
+            +--- Swapchain
+                      |
+                      v
+                Swapchain Images
 */
 
 class HelloTriangleApplication
@@ -66,6 +73,12 @@ private:
     vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
     vk::raii::Device mDevice{nullptr};
     vk::raii::Queue mGraphicsQueue{nullptr};
+    vk::raii::SwapchainKHR mSwapChain{nullptr};
+
+    std::vector<vk::Image> mSwapChainImages;
+
+    vk::SurfaceFormatKHR mSwapChainSurfaceFormat{};
+    vk::Extent2D mSwapChainExtent{};
 
     void initWindow()
     {
@@ -91,6 +104,7 @@ private:
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
+        createSwapChain();
     }
 
     void mainLoop()
@@ -103,6 +117,8 @@ private:
 
     void cleanup() noexcept
     {
+        mSwapChainImages.clear();
+        mSwapChain.clear();
         mSurface.clear(); // 先释放 Surface, 再销毁其对应的 GLFW Window
         if (mWindow)
         {
@@ -380,6 +396,108 @@ private:
 
         mDevice = vk::raii::Device(mPhysicalDevice, deviceCreateInfo);
         mGraphicsQueue = vk::raii::Queue(mDevice, graphicsPresentFamilyIndex.value(), 0);
+    }
+
+    void createSwapChain()
+    {
+        // 图像数量, 尺寸, 用途等限制
+        const vk::SurfaceCapabilitiesKHR capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(*mSurface);
+
+        // 可以使用什么像素格式与颜色空间
+        const std::vector<vk::SurfaceFormatKHR> formats = mPhysicalDevice.getSurfaceFormatsKHR(*mSurface);
+
+        // 图像如何排队等待呈现
+        const std::vector<vk::PresentModeKHR> presentModes = mPhysicalDevice.getSurfacePresentModesKHR(*mSurface);
+
+        // 选择交换链的图像数量, 尺寸, 像素格式与颜色空间, 呈现模式
+        const uint32_t imageCount = chooseSwapMinImageCount(capabilities);
+        mSwapChainSurfaceFormat = chooseSwapSurfaceFormat(formats);
+        mSwapChainExtent = chooseSwapExtent(capabilities);
+        const vk::PresentModeKHR presentMode = chooseSwapPresentMode(presentModes);
+
+        vk::SwapchainCreateInfoKHR swapChainCreateInfo{
+            .surface = *mSurface,
+            .minImageCount = imageCount,
+            .imageFormat = mSwapChainSurfaceFormat.format,
+            .imageColorSpace = mSwapChainSurfaceFormat.colorSpace,
+            .imageExtent = mSwapChainExtent,
+            .imageArrayLayers = 1,
+            .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
+            .imageSharingMode = vk::SharingMode::eExclusive,
+            .preTransform = capabilities.currentTransform,
+            .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+            .presentMode = presentMode,
+            .clipped = VK_TRUE};
+
+        mSwapChain = vk::raii::SwapchainKHR(mDevice, swapChainCreateInfo);
+        mSwapChainImages = mSwapChain.getImages();
+
+#ifndef NDEBUG
+        std::cout << "===================================================================\n";
+        std::cout << "Surface Min Image Count: " << capabilities.minImageCount << ", Max Image Count:" << capabilities.maxImageCount << '\n';
+        std::cout << "Surface Current Extent: " << capabilities.currentExtent.width << "x" << capabilities.currentExtent.height << '\n';
+        std::cout << "Selected Swapchain Format: " << vk::to_string(mSwapChainSurfaceFormat.format) << '\n';
+        std::cout << "Selected Color Space: " << vk::to_string(mSwapChainSurfaceFormat.colorSpace) << '\n';
+        std::cout << "Selected Present Mode: " << vk::to_string(presentMode) << '\n';
+        std::cout << "Selected Swapchain Extent: " << mSwapChainExtent.width << "x" << mSwapChainExtent.height << '\n';
+        std::cout << "Requested Image Count: " << imageCount << '\n';
+        std::cout << "Actual Swapchain Image Count: " << mSwapChainImages.size() << '\n';
+#endif
+    }
+
+    uint32_t chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities) const
+    {
+        // 根据 Vulkan 规范, minImageCount 尽量请求至少三张图像
+        uint32_t count = std::max(3u, capabilities.minImageCount);
+        if (capabilities.maxImageCount != 0 && count > capabilities.maxImageCount)
+        {
+            count = capabilities.maxImageCount;
+        }
+        return count;
+    }
+
+    vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &formats) const
+    {
+        // 优先选择 VK_FORMAT_B8G8R8A8_SRGB 和 VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+        for (const auto &format : formats)
+        {
+            if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+            {
+                return format;
+            }
+        }
+        // 如果没有找到, 则返回第一个可用的格式
+        return formats[0];
+    }
+
+    vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &modes) const
+    {
+        // 优先 Mailbox, 不支持即回退 FIFO
+        for (const auto &mode : modes)
+        {
+            if (mode == vk::PresentModeKHR::eMailbox)
+            {
+                return mode;
+            }
+        }
+        return vk::PresentModeKHR::eFifo;
+    }
+
+    vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities) const
+    {
+        // Surface 已规定尺寸
+        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+        {
+            return capabilities.currentExtent;
+        }
+
+        // Surface 允许应用选择尺寸
+        int width, height = 0;
+        glfwGetFramebufferSize(mWindow, &width, &height);
+        vk::Extent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+        return actualExtent;
     }
 };
 
