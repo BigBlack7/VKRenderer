@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0 Setup 已全部验收；03.1.0 Window Surface 已通过验收。
-- **当前小节：** 03.1.1 Swap Chain，尚未开始。
+- **当前状态：** 03.0 Setup 已全部验收；03.1.0 Window Surface、03.1.1 Swap Chain 已通过验收。
+- **当前小节：** 03.1.2 Image Views，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 继续最小必要架构设计，不提前建立通用 RHI 或 Renderer Manager。
@@ -21,7 +21,7 @@
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
 | [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
-| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface 已完成；Swap Chain 下一步 |
+| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface、Swap Chain 已完成；Image Views 下一步 |
 | [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
@@ -36,15 +36,18 @@
 - [03.0.3 Physical Devices and Queue Families](03-0-Setup.md#lesson-03-0-3)
 - [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
 - [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
+- [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
 
 **下一小节：**
 
-- [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
+- [03.1.2 Image Views](03-1-Presentation.md#lesson-03-1-2)
 
 **最近代码审查：**
 
-- Window Surface 实现与 Code Review Commit：
-  `2302ae2a223882d0b3511f632a3d1b71da04f0bf`
+- Swap Chain 首次实现 Commit：
+  `4afb6b023c04c9ededcb963bdcb65170b1f1095c`
+- Swap Chain 修复与最终 Code Review Commit：
+  `5e52ac09100b1fb5361efe00185cc9357a062784`
 - 当前无未解决的 P0 / P1 问题。
 
 **当前工程状态：**
@@ -69,8 +72,15 @@
 - 已获取 Graphics Queue。
 - Vulkan-Hpp RAII Device 与 Queue 生命周期符合当前阶段要求。
 - Debug / Release 编译运行正常。
-- 已创建 Window Surface，未创建Swapchain 或 Image Views。
-- 尚未向 GPU 提交绘制命令。
+- 已创建 Window Surface。
+- 已创建 Swapchain，并获取三张 Swapchain Images。
+- 已完成 Surface Format、Present Mode、Extent 和 Image Count 选择。
+- 已实现 Composite Alpha 支持性检查。
+- Swapchain 使用 Vulkan-Hpp RAII 管理。
+- Swapchain Images 仅作为非拥有型句柄保存。
+- Swapchain 在 Surface 和 Device 之前销毁。
+- 尚未创建 Image Views、Graphics Pipeline 或 Command Buffer。
+- 尚未执行 Acquire、Render 或 Present。
 
 ## 本章工程约定
 

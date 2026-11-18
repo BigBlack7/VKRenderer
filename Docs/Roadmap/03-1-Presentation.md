@@ -143,18 +143,188 @@
 
 ## 03.1.1 — Swap Chain
 
-- [ ] Surface Capabilities
-- [ ] Surface Format / Color Space
-- [ ] Present Mode
-- [ ] Swap Extent
-- [ ] Image Count
-- [ ] Image Sharing Mode
-- [ ] Swapchain Images
-- [ ] Acquire → Render → Present 模型
-- [ ] Double / Triple Buffering 与 VSync
+- [x] Surface Capabilities
+  - 使用 `getSurfaceCapabilitiesKHR()` 查询能力
+  - 理解 minImageCount、maxImageCount 的含义
+  - 理解 maxImageCount 为 0 的特殊含义
+  - 查询 Surface Extent 与其他支持限制
+- [x] Surface Format / Color Space
+  - 使用 `getSurfaceFormatsKHR()`
+  - 区分 Image Format 与 Color Space
+  - 优先选择 `B8G8R8A8Srgb + SrgbNonlinear`
+  - 不支持偏好格式时使用可用格式
+- [x] Present Mode
+  - 使用 `getSurfacePresentModesKHR()`
+  - 理解 Immediate、FIFO、FIFO Relaxed 和 Mailbox
+  - 优先选择 Mailbox
+  - 不支持 Mailbox 时回退 FIFO
+- [x] Swap Extent
+  - 理解 Window Size 与 Framebuffer Size 的区别
+  - 理解高 DPI 对图像尺寸的影响
+  - 优先使用 Surface 指定的 currentExtent
+  - 在允许自行选择尺寸时使用 GLFW Framebuffer Size
+  - 使用 std::clamp() 限制尺寸
+  - 防止零尺寸 Swapchain 创建
+- [x] Image Count
+  - 根据 Surface 能力尽量请求至少三张图像
+  - 正确处理最小和最大数量约束
+  - 区分请求 Image Count 与实际 Image Count
+- [x] Image Sharing Mode
+  - 理解 Exclusive 与 Concurrent
+  - 当前 Graphics/Present 使用同一个 Queue Family
+  - 使用 Exclusive Sharing Mode
+  - 暂不引入跨 Queue Family Ownership Transfer
+- [x] Swapchain Images
+  - 创建 `vk::raii::SwapchainKHR`
+  - 使用 `getImages()` 取得 Swapchain Images
+  - 使用 `std::vector<vk::Image>` 保存非拥有型句柄
+  - 理解 Swapchain Image 不由应用单独销毁
+- [x] Acquire → Render → Present 模型
+  - 理解后续帧呈现流程
+  - 区分图像句柄获取与图像 Acquire
+  - 当前尚未执行 Acquire、Render 或 Present
+- [x] Double / Triple Buffering 与 VSync
+  - 理解多图像缓冲的调度意义
+  - 理解 Mailbox 与 FIFO 的区别
+  - 理解 Present Mode 与 Image Count 是独立配置
 
 **实践：**
-创建 Swapchain 并获取 Swapchain Images。
+
+在 `HelloTriangle` 中创建 Swapchain，并取得 Swapchain Images。
+
+**已完成实现：**
+
+- 新增 `vk::raii::SwapchainKHR mSwapChain`。
+- 新增 `std::vector<vk::Image> mSwapChainImages`。
+- 保存 Swapchain Surface Format 与 Extent。
+- 新增 `createSwapChain()`。
+- 新增 Swapchain Format、Present Mode、Extent、Image Count 选择函数。
+- 查询 Surface Capabilities、Formats 和 Present Modes。
+- 选择受支持的 Composite Alpha。
+- 正确设置 `vk::SwapchainCreateInfoKHR`。
+- 创建 Swapchain。
+- 获取实际 Swapchain Images。
+- 在清理阶段先释放 Swapchain，再释放 Surface。
+- 未提前创建 Image Views、Command Buffers 或绘制同步对象。
+
+**本机运行结果：**
+
+- GPU：NVIDIA GeForce RTX 4080 Laptop GPU
+- Graphics/Present Queue Family Index：0
+- Surface Min Image Count：2
+- Surface Max Image Count：8
+- Surface Current Extent：800 × 600
+- Swapchain Format：B8G8R8A8Srgb
+- Color Space：SrgbNonlinear
+- Present Mode：Mailbox
+- Swapchain Extent：800 × 600
+- Composite Alpha：Opaque
+- Requested Image Count：3
+- Actual Swapchain Image Count：3
+
+**架构与生命周期：**
+
+- 继续使用 `HelloTriangleApplication`。
+- 暂不新增 SwapchainManager 或 Renderer 类。
+- Swapchain 依赖 Logical Device 和 Window Surface。
+- Swapchain Image 句柄不拥有独立的 Vulkan Image 生命周期。
+- 当前销毁顺序为清理 Image 句柄集合、销毁 Swapchain、销毁 Surface、销毁 GLFW Window。
+- Device 在相关 Swapchain 资源有效期间保持存活。
+- 当前尚未提交 GPU 工作，因此不需要 GPU Idle 等待。
+- 未来真正提交 GPU 工作后，必须处理 GPU 完成同步。
+- 后续创建 Image Views 后，必须保证其先于对应 Swapchain 销毁。
+- Swapchain Recreation 留待对应小节实现。
+
+**GitHub Code Review：**
+
+首次实现 Commit：
+
+`4afb6b023c04c9ededcb963bdcb65170b1f1095c`
+
+修复与最终审查 Commit：
+
+`5e52ac09100b1fb5361efe00185cc9357a062784`
+
+第一轮审查发现：
+
+1. P1：Composite Alpha 未验证 Surface 支持。
+   - 原实现无条件使用 eOpaque。
+   - 修复：优先使用受支持的 eOpaque，必要时回退到其他受支持模式。
+   - 修复后满足 Vulkan Composite Alpha 有效使用要求。
+
+2. P2：缺少 Swapchain Extent 零尺寸保护。
+   - 修复：创建前检查 width 和 height 是否为零。
+   - 无效尺寸时抛出明确异常。
+
+3. P3：Framebuffer Size 的 width 未显式初始化。
+   - 修复：width 和 height 均初始化为零。
+
+4. P3：缺少 `<limits>` 显式头文件。
+   - 修复：补充 `<limits>`。
+
+第二轮审查结果：
+
+- P1 已解决。
+- P2 已解决。
+- 两项 P3 已解决。
+- Composite Alpha 选择符合 Surface 支持条件。
+- Swapchain 参数配置符合当前 Vulkan 有效使用条件。
+- Swapchain Image 所有权正确。
+- RAII 资源生命周期正确。
+- 无新增 P0 / P1 问题。
+- GitHub 静态代码审查通过。
+
+**编译与运行验证（2026-11-18）：**
+
+- Debug Clean Build 成功。
+- Release Clean Build 成功。
+- 无新增编译警告。
+- Debug 程序正常运行，退出码为 0。
+- Release 程序正常运行，退出码为 0。
+- 成功创建 Swapchain。
+- 成功取得三张 Swapchain Images。
+- 未出现新的 Validation Error。
+- 本地运行结果由开发者提供。
+- GitHub 审查为静态代码审查，不等同于导师独立运行。
+
+**原理理解验收：**
+
+四道原理题全部通过。
+
+已理解：
+
+1. Surface、Swapchain 与 Swapchain Images 的职责区别。
+2. Swapchain Images 不由应用逐张销毁。
+3. Image Count 的数量约束。
+4. maxImageCount 为 0 的特殊含义。
+5. Mailbox 与 FIFO 的呈现策略区别。
+6. Present Mode 与 Image Count 相互独立。
+7. Window Size 与 Framebuffer Size 的区别。
+8. currentExtent 与自行选择 Extent 的条件。
+9. Surface、Swapchain、Device 和 GLFW Window 的依赖关系。
+10. CPU 端对象析构顺序与 GPU 完成同步是不同的问题。
+
+**最终验收结论（2026-11-18）：**
+
+- 理论理解通过。
+- Surface Capabilities 查询通过。
+- Surface Format 选择通过。
+- Present Mode 选择通过。
+- Swap Extent 选择通过。
+- Image Count 选择通过。
+- Composite Alpha 选择通过。
+- Swapchain 创建通过。
+- Swapchain Images 获取通过。
+- RAII 生命周期审查通过。
+- Debug / Release 本地验证通过。
+- GitHub Code Review 通过。
+- 无遗留 P0 / P1 问题。
+
+**小节状态：已完成。**
+
+**下一小节：**
+
+03.1.2 — Image Views
 
 ---
 

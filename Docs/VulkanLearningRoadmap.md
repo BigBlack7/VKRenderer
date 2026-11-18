@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
-- **刚完成：** [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)
+- **当前学习目标：** [03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
+- **刚完成：** [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -263,13 +263,14 @@ Phase 0 — World View & Environment
   01 Overview                  [COMPLETED]
   02 Development Environment   [COMPLETED]  M0
 
-Phase 1 — Drawing a Triangle   [IN PROGRESS]
+Phase 1 — Drawing a Triangle  [IN PROGRESS]
   03.0 Setup                  [COMPLETED]
   03.1 Presentation           [IN PROGRESS]
-    03.1.0 Window Surface      [COMPLETED]
-    03.1.1 Swap Chain          ← NEXT / NOT STARTED
+    03.1.0 Window Surface     [COMPLETED]
+    03.1.1 Swap Chain         [COMPLETED]
+    03.1.2 Image Views        ← NEXT / NOT STARTED
 
-M1 First Triangle              [IN PROGRESS]
+M1 First Triangle             [IN PROGRESS]
 ```
 
 **已通过验收：**
@@ -283,6 +284,7 @@ M1 First Triangle              [IN PROGRESS]
 - [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)：2026-11-13，理论、Physical Device 枚举、设备适用性检查、Debug/Release 及 GitHub Review 通过。
 - [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)：2026-11-14，理论、Queue Create Info、Feature Chain、Logical Device、Graphics Queue、Debug/Release 及 GitHub Review 通过。
 - [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)：2026-11-16，理论、Surface 创建、Graphics/Present Support、资源生命周期、Debug/Release 和 GitHub Review 通过。
+- [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)：2026-11-18，理论、Swapchain 创建、参数有效性、Images 所有权、Debug/Release 及 GitHub Review 通过。
 
 **当前工程基线：**
 
@@ -295,12 +297,17 @@ M1 First Triangle              [IN PROGRESS]
 - 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
 - `EnvironmentCheck` 继续作为 M0 环境验证 Sandbox 保留。
 - `HelloTriangle` 为 M1 正式实践 Sandbox。
-- 最近完成代码审查的 Commit：`2302ae2a223882d0b3511f632a3d1b71da04f0bf`。
-- 已创建 `vk::raii::SurfaceKHR`。
-- 已检查 Physical Device 对当前 Surface 的 Presentation Support。
-- 已选中同时支持 Graphics 与 Present 的 Queue Family。
-- 已调整 Surface 与 GLFW Window 的清理顺序。
-- 尚未创建 Swapchain 或 Swapchain Images。
+- 最近完成代码审查的 Commit：`5e52ac09100b1fb5361efe00185cc9357a062784`。
+- 已创建 `vk::raii::SwapchainKHR`。
+- 已查询 Surface Capabilities、Formats 与 Present Modes。
+- 当前使用 B8G8R8A8Srgb、SrgbNonlinear 和 Mailbox。
+- 已验证 Composite Alpha 的支持性。
+- 当前 Swapchain Extent 为 800 × 600。
+- 实际获得三张 Swapchain Images。
+- 使用 `std::vector<vk::Image>` 保存非拥有型图像句柄。
+- 已确保 Swapchain 在 Surface 之前销毁。
+- 尚未创建 Swapchain Image Views。
+- 尚未执行 Acquire、Render 或 Present。
 - 当前无未解决的 P0 / P1 问题。
 
 **最近验证：**
@@ -317,11 +324,17 @@ M1 First Triangle              [IN PROGRESS]
 
 **下一步：**
 
-[03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
+[03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
 
-重点学习 Surface Capabilities、Surface Format、Present Mode、
-Swap Extent、Swapchain Image Count、Image Sharing Mode，
-以及 Swapchain 创建和资源生命周期。
+下一节重点：
+
+- Vulkan Image 与 ImageView 的区别。
+- ImageView 的 View Type 与 Format。
+- Component Mapping。
+- Subresource Range。
+- Color Aspect、Mip Level、Array Layer。
+- 使用 Vulkan-Hpp RAII 创建 Swapchain Image Views。
+- ImageView 与 Swapchain Image 的所有权和生命周期。
 
 **进度维护原则：**
 
