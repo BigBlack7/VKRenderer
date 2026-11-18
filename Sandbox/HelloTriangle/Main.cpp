@@ -14,6 +14,7 @@
 #include <utility>
 #include <optional>
 #include <ranges>
+#include <limits>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -413,7 +414,34 @@ private:
         const uint32_t imageCount = chooseSwapMinImageCount(capabilities);
         mSwapChainSurfaceFormat = chooseSwapSurfaceFormat(formats);
         mSwapChainExtent = chooseSwapExtent(capabilities);
+        if (mSwapChainExtent.width == 0 || mSwapChainExtent.height == 0)
+        {
+            throw std::runtime_error("Cannot create swapchain with zero extent");
+        }
         const vk::PresentModeKHR presentMode = chooseSwapPresentMode(presentModes);
+
+        // 检查所选的复合 Alpha 模式是否受支持, 如果不受支持则从 ePreMultiplied、ePostMultiplied、eInherit 中选出一个受支持的模式
+        const auto supported = capabilities.supportedCompositeAlpha;
+        vk::CompositeAlphaFlagBitsKHR compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        if (!static_cast<bool>(supported & compositeAlpha))
+        {
+            if (static_cast<bool>(supported & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied))
+            {
+                compositeAlpha = vk::CompositeAlphaFlagBitsKHR::ePreMultiplied;
+            }
+            else if (static_cast<bool>(supported & vk::CompositeAlphaFlagBitsKHR::ePostMultiplied))
+            {
+                compositeAlpha = vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
+            }
+            else if (static_cast<bool>(supported & vk::CompositeAlphaFlagBitsKHR::eInherit))
+            {
+                compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eInherit;
+            }
+            else
+            {
+                throw std::runtime_error("No supported composite alpha mode found");
+            }
+        }
 
         vk::SwapchainCreateInfoKHR swapChainCreateInfo{
             .surface = *mSurface,
@@ -425,7 +453,7 @@ private:
             .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
             .imageSharingMode = vk::SharingMode::eExclusive,
             .preTransform = capabilities.currentTransform,
-            .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+            .compositeAlpha = compositeAlpha,
             .presentMode = presentMode,
             .clipped = VK_TRUE};
 
@@ -440,6 +468,7 @@ private:
         std::cout << "Selected Color Space: " << vk::to_string(mSwapChainSurfaceFormat.colorSpace) << '\n';
         std::cout << "Selected Present Mode: " << vk::to_string(presentMode) << '\n';
         std::cout << "Selected Swapchain Extent: " << mSwapChainExtent.width << "x" << mSwapChainExtent.height << '\n';
+        std::cout << "Selected Composite Alpha: " << vk::to_string(compositeAlpha) << '\n';
         std::cout << "Requested Image Count: " << imageCount << '\n';
         std::cout << "Actual Swapchain Image Count: " << mSwapChainImages.size() << '\n';
 #endif
@@ -492,7 +521,7 @@ private:
         }
 
         // Surface 允许应用选择尺寸
-        int width, height = 0;
+        int width = 0, height = 0;
         glfwGetFramebufferSize(mWindow, &width, &height);
         vk::Extent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
         actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
