@@ -77,6 +77,7 @@ private:
     vk::raii::SwapchainKHR mSwapChain{nullptr};
 
     std::vector<vk::Image> mSwapChainImages;
+    std::vector<vk::raii::ImageView> mSwapChainImageViews;
 
     vk::SurfaceFormatKHR mSwapChainSurfaceFormat{};
     vk::Extent2D mSwapChainExtent{};
@@ -106,6 +107,7 @@ private:
         pickPhysicalDevice();
         createLogicalDevice();
         createSwapChain();
+        createImageViews();
     }
 
     void mainLoop()
@@ -118,6 +120,7 @@ private:
 
     void cleanup() noexcept
     {
+        mSwapChainImageViews.clear();
         mSwapChainImages.clear();
         mSwapChain.clear();
         mSurface.clear(); // 先释放 Surface, 再销毁其对应的 GLFW Window
@@ -528,6 +531,31 @@ private:
         actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
         return actualExtent;
     }
+
+    void createImageViews()
+    {
+        mSwapChainImageViews.reserve(mSwapChainImages.size());
+        for (const auto &image : mSwapChainImages)
+        {
+            vk::ImageViewCreateInfo createInfo{
+                .image = image,
+                .viewType = vk::ImageViewType::e2D,
+                .format = mSwapChainSurfaceFormat.format,
+                .components = vk::ComponentMapping{
+                    .r = vk::ComponentSwizzle::eIdentity,
+                    .g = vk::ComponentSwizzle::eIdentity,
+                    .b = vk::ComponentSwizzle::eIdentity,
+                    .a = vk::ComponentSwizzle::eIdentity},
+                .subresourceRange = vk::ImageSubresourceRange{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1}};
+
+            mSwapChainImageViews.emplace_back(mDevice, createInfo);
+        }
+    };
 };
 
 int main()
