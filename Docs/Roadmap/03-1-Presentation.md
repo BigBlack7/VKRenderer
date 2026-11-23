@@ -332,15 +332,241 @@
 
 ## 03.1.2 — Image Views
 
-- [ ] Image 与 ImageView 的区别
-- [ ] View Type
-- [ ] Format
-- [ ] Component Mapping
-- [ ] Subresource Range
-- [ ] Aspect / Mip Level / Array Layer
+- [x] Image 与 ImageView 的区别
+  - 理解 Image 是图像资源，ImageView 是对图像的访问视图
+  - ImageView 不复制底层 Image 数据
+  - ImageView 不拥有底层 Image
+  - 理解一张 Image 可以创建多个符合约束的 ImageViews
+- [x] View Type
+  - 理解 ImageView Type 与底层 Image 类型的关系
+  - 当前 Swapchain ImageView 使用 `vk::ImageViewType::e2D`
+- [x] Format
+  - 使用 Swapchain Image 的实际 Format
+  - 当前格式为 `vk::Format::eB8G8R8A8Srgb`
+  - 不进行不必要的格式重新解释
+- [x] Component Mapping
+  - 理解 RGBA 通道映射的作用
+  - 当前使用 Identity Mapping
+- [x] Subresource Range
+  - 理解 ImageSubresourceRange 的作用
+  - 使用合法的 Image 子资源范围
+- [x] Aspect / Mip Level / Array Layer
+  - 当前 Swapchain ImageView 使用 Color Aspect
+  - 使用第 0 个 Mip Level，数量为 1
+  - 使用第 0 个 Array Layer，数量为 1
+  - 区分 Mip Level 与 Array Layer
+  - 理解 Mip Level 表示不同分辨率层级
+  - 理解 Array Layer 表示同一 Image 中不同的数组切片
+- [x] Vulkan-Hpp RAII 与资源所有权
+  - 使用 `vk::raii::ImageView`
+  - 使用 `std::vector<vk::raii::ImageView>` 管理全部视图
+  - 正确处理部分 ImageView 创建失败时的异常清理
+  - 保证 ImageViews 先于 Swapchain 销毁
+- [x] Image Layout 与 Dynamic Rendering
+  - 理解创建 ImageView 不会自动执行 Image Layout Transition
+  - 理解 ImageView 和 Image Layout 的职责不同
+  - 理解 `VkRenderingInfo` 与 `VkRenderingAttachmentInfo` 的附件指定关系
+  - 理解 Dynamic Rendering 不需要传统的 `VkFramebuffer`
+  - 暂不实现 Image Layout Transition 或绘制命令
 
 **实践：**
-为所有 Swapchain Image 建立 ImageView。
+
+为现有 Swapchain 的每张 Image 创建对应的 ImageView。
+
+**已完成实现：**
+
+- 新增 `std::vector<vk::raii::ImageView> mSwapChainImageViews`。
+- 新增 `createImageViews()`。
+- 在 `createSwapChain()` 后调用 `createImageViews()`。
+- 使用 `mSwapChainImages` 遍历实际 Swapchain Images。
+- 使用 `vk::ImageViewCreateInfo` 配置 ImageView。
+- 设置 View Type 为 `e2D`。
+- 使用 Swapchain Surface Format。
+- 使用 Identity Component Mapping。
+- 使用 Color Aspect。
+- 设置 Mip Level 和 Array Layer 范围。
+- 使用 `emplace_back()` 构造 RAII ImageViews。
+- 使用 `reserve()` 预留 Vector 容量。
+- 在 `cleanup()` 中先清理 ImageViews，再清理 Swapchain Images 和 Swapchain。
+- 未提前创建 Graphics Pipeline 或 Command Buffer。
+
+**对象所有权：**
+
+- `mSwapChain` 是由应用管理的 RAII Swapchain 对象。
+- `mSwapChainImages` 保存非拥有型 `vk::Image` 句柄。
+- `mSwapChainImageViews` 保存应用拥有的 RAII ImageView 对象。
+- 销毁 ImageView 不会销毁底层 Image。
+- Swapchain Images 随对应 Swapchain 销毁而失效。
+- 不对 Swapchain Images 单独调用 `vkDestroyImage()`。
+
+**生命周期与异常安全：**
+
+当前正常关闭时的清理顺序：
+
+```text
+mSwapChainImageViews.clear()
+             |
+             v
+mSwapChainImages.clear()
+             |
+             v
+mSwapChain.clear()
+             |
+             v
+mSurface.clear()
+             |
+             v
+glfwDestroyWindow()
+             |
+             v
+glfwTerminate()
+             |
+             v
+其余 Vulkan RAII 成员按声明逆序析构
+```
+
+- ImageViews 必须在对应 Swapchain 销毁之前销毁。
+- `mSwapChainImageViews.clear()` 释放实际 Vulkan ImageView 对象。
+- `mSwapChainImages.clear()` 只清空非拥有型 C++ 句柄集合。
+- 若部分 ImageView 创建失败，已经成功构造的 RAII 对象仍由 Vector 持有。
+- 异常路径调用 `cleanup()`，释放已创建的 ImageViews。
+- 当前没有提交 GPU 绘制工作，不需要额外 GPU Idle 等待。
+- 后续提交 GPU 工作后，必须先确认 GPU 不再使用相关对象，才能销毁 ImageViews 和 Swapchain。
+- C++ RAII 析构顺序不能替代 GPU 执行同步。
+
+**GitHub Code Review：**
+
+实现及代码审查 Commit：
+
+`ef3635c60186d64f009f36d483b54daef425fbc9`
+
+审查结果：
+
+- ImageView 创建顺序正确。
+- `VkImageViewCreateInfo` 关键参数正确。
+- View Type 与 Swapchain Images 匹配。
+- Format 正确。
+- Component Mapping 正确。
+- Subresource Range 正确。
+- ImageView 数量由实际 Swapchain Image 集合驱动。
+- RAII 所有权明确。
+- 部分创建失败时的资源清理正确。
+- ImageViews 在 Swapchain 之前销毁。
+- 未发现 P0 / P1 问题。
+- GitHub 静态代码审查通过。
+
+非阻断性建议：
+
+- P3：可增加 Debug 输出 `mSwapChainImageViews.size()`。
+- 该输出用于增强调试可观察性，不影响当前实现验收。
+- 无需单独提交修改。
+
+**编译与运行验证（2026-11-23）：**
+
+- Debug Clean Build 成功。
+- Release Clean Build 成功。
+- 未出现新的 MSVC 编译警告。
+- Debug 程序运行正常，退出码为 0。
+- Release 程序运行正常，退出码为 0。
+- 成功创建 Swapchain 并获得三张 Swapchain Images。
+- `createImageViews()` 已接入初始化流程。
+- 创建函数遍历全部 Swapchain Images。
+- ImageView 创建失败会通过异常处理路径报告。
+- 本次正常退出支持 ImageViews 创建成功的判断。
+- 当前日志没有单独输出 ImageView Count。
+- 未报告新的 Validation Error。
+- 本地编译运行由开发者完成，导师进行 GitHub 静态代码审查。
+
+**原理理解验收（2026-11-23）：**
+
+四道原理题及两道补充题全部通过。
+
+已理解：
+
+1. Image 与 ImageView 的区别。
+2. ImageView 不复制或拥有底层 Image。
+3. ImageView 的 View Type、Format、Component Mapping。
+4. Image Subresource Range。
+5. Color、Depth 和 Stencil Aspect 的基本区别。
+6. Mip Level 与 Array Layer 是独立的图像子资源维度。
+7. Mip Level 和 Array Layer 均采用从 0 开始的索引。
+8. Swapchain Images 与 ImageViews 的所有权区别。
+9. Vulkan-Hpp RAII 对部分资源创建失败的异常安全作用。
+10. ImageViews 必须先于 Swapchain 销毁。
+11. 创建 ImageView 不会自动改变 Image Layout。
+12. Dynamic Rendering 使用 RenderingInfo 和 RenderingAttachmentInfo 指定渲染附件。
+13. Dynamic Rendering 不要求创建传统的 VkFramebuffer。
+14. Image Layout 和 GPU 同步仍由应用显式管理。
+
+**最终验收结论（2026-11-23）：**
+
+- 理论理解通过。
+- ImageView 创建通过。
+- CreateInfo 参数审查通过。
+- Image Subresource Range 审查通过。
+- RAII 所有权审查通过。
+- 异常安全审查通过。
+- 生命周期审查通过。
+- Debug / Release 本地验证通过。
+- GitHub Code Review 通过。
+- 无未解决 P0 / P1 问题。
+
+**小节状态：已完成。**
+
+---
+
+## 03.1 Presentation — 阶段验收总结
+
+**完成日期：2026-11-23。**
+
+以下小节全部通过验收：
+
+- 03.1.0 Window Surface
+- 03.1.1 Swap Chain
+- 03.1.2 Image Views
+
+**当前工程成果：**
+
+- 已通过 GLFW 创建 Vulkan Window Surface。
+- 已实现 Graphics / Present Support 检查。
+- 已使用同一个 Queue Family 满足 Graphics 与 Present 需求。
+- 已创建 Vulkan Swapchain。
+- 已根据 Surface Capabilities 选择交换链配置。
+- 已获得三张 Swapchain Images。
+- 已为全部 Swapchain Images 创建 RAII ImageViews。
+- 已明确 Surface、Swapchain、Swapchain Images 和 ImageViews 的资源所有权。
+- 已建立正确的资源清理顺序。
+- Debug / Release 构建与运行正常。
+- 当前没有未解决的 P0 / P1 问题。
+
+**当前尚未实现：**
+
+- Graphics Pipeline
+- Shader Stages
+- Dynamic Rendering 的实际命令录制
+- Command Buffer
+- Image Layout Transition
+- GPU 工作提交与帧同步
+- Swapchain Image Acquire / Present
+- Swapchain Recreation
+
+**架构结论：**
+
+继续保留当前 `HelloTriangleApplication` 的渐进式结构。
+
+现阶段不引入复杂 Window Manager、Swapchain Manager、RHI 或 Render Graph。
+
+下一阶段根据真实代码职责继续评估模块边界，优先保持资源生命周期明确。
+
+**阶段状态：03.1 Presentation 已全部完成。**
+
+**下一教学单元：**
+
+03.2 — Graphics Pipeline Basics
+
+**下一小节：**
+
+03.2.0 — Introduction
 
 ---
 

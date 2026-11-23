@@ -10,19 +10,19 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0 Setup 已全部验收；03.1.0 Window Surface、03.1.1 Swap Chain 已通过验收。
-- **当前小节：** 03.1.2 Image Views，尚未开始。
+- **当前状态：** 03.0 Setup 与 03.1 Presentation 已全部通过验收。
+- **当前小节：** 03.2.0 Graphics Pipeline Basics — Introduction，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
-- **当前约束：** 继续最小必要架构设计，不提前建立通用 RHI 或 Renderer Manager。
+- **当前约束：** 继续使用最小必要架构，不提前建立通用 RHI 或 Renderer Manager。
 
 ## 本章目录
 
 | 教学单元 | 内容 | 当前进度 |
 |---|---|---|
 | [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
-| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | Window Surface、Swap Chain 已完成；Image Views 下一步 |
-| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | 待开始 |
+| [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 全部完成 |
+| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | Introduction 下一步 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
 
@@ -37,50 +37,70 @@
 - [03.0.4 Logical Device and Queues](03-0-Setup.md#lesson-03-0-4)
 - [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
 - [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
+- [03.1.2 Image Views](03-1-Presentation.md#lesson-03-1-2)
 
 **下一小节：**
 
-- [03.1.2 Image Views](03-1-Presentation.md#lesson-03-1-2)
+- [03.2.0 Introduction](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
 
 **最近代码审查：**
 
-- Swap Chain 首次实现 Commit：
-  `4afb6b023c04c9ededcb963bdcb65170b1f1095c`
-- Swap Chain 修复与最终 Code Review Commit：
-  `5e52ac09100b1fb5361efe00185cc9357a062784`
+- Image Views 实现与 Code Review Commit：
+  `ef3635c60186d64f009f36d483b54daef425fbc9`
+- 03.1 Presentation 全部小节已通过验收。
 - 当前无未解决的 P0 / P1 问题。
 
-**当前工程状态：**
+## 当前工程状态
 
-- GLFW 窗口与事件循环已完成。
+- GLFW Window 与事件循环已完成。
 - Vulkan-Hpp RAII Context 与 Instance 已建立。
-- GLFW required Instance Extensions 已完成检查。
-- Debug 构建已配置 `VK_LAYER_KHRONOS_validation`。
-- Debug 构建已配置 `VK_EXT_debug_utils`。
-- Debug Messenger 与 Debug Callback 已实现。
-- Debug Messenger 消息通道自测通过。
-- 真实 Vulkan Validation VUID 实验通过。
-- Debug / Release 策略符合当前项目约定。
-- Debug Messenger 的生命周期由 RAII 管理。
-- Physical Device 枚举、Properties、Features、Extensions 查询已完成。
-- Queue Family 查询与 Graphics 支持检查已完成。
-- Device Suitability 与 GPU Selection 已完成。
-- 已选中 NVIDIA GeForce RTX 4080 Laptop GPU。
-- Physical Device 由 Vulkan-Hpp RAII 对象保存。
-- 已创建 Logical Device。
-- 已启用所需 Device Features 和 `VK_KHR_swapchain`。
-- 已获取 Graphics Queue。
-- Vulkan-Hpp RAII Device 与 Queue 生命周期符合当前阶段要求。
-- Debug / Release 编译运行正常。
-- 已创建 Window Surface。
-- 已创建 Swapchain，并获取三张 Swapchain Images。
-- 已完成 Surface Format、Present Mode、Extent 和 Image Count 选择。
-- 已实现 Composite Alpha 支持性检查。
-- Swapchain 使用 Vulkan-Hpp RAII 管理。
-- Swapchain Images 仅作为非拥有型句柄保存。
-- Swapchain 在 Surface 和 Device 之前销毁。
-- 尚未创建 Image Views、Graphics Pipeline 或 Command Buffer。
+- Vulkan Validation Layers 与 Debug Messenger 已建立。
+- Physical Device 枚举、能力查询和设备选择已完成。
+- 当前选中 NVIDIA GeForce RTX 4080 Laptop GPU。
+- Logical Device 已创建。
+- Graphics/Present Queue 已创建并取得。
+- Window Surface 已创建。
+- Surface Presentation Support 检查已完成。
+- Swapchain 创建与参数选择已完成。
+- 当前 Swapchain 包含三张 Image。
+- Image 句柄由 `std::vector<vk::Image>` 保存。
+- ImageViews 由 `std::vector<vk::raii::ImageView>` 管理。
+- ImageView 与 Swapchain Image 的映射关系明确。
+- ImageViews 在 Swapchain 之前销毁。
+- Swapchain 在 Surface 之前销毁。
+- Surface 在 GLFW Window 之前销毁。
+- Debug / Release 构建运行正常。
+- 尚未创建 Graphics Pipeline。
+- 尚未录制 Command Buffers。
+- 尚未执行 Image Layout Transition。
 - 尚未执行 Acquire、Render 或 Present。
+- 当前无未解决的 P0 / P1 问题。
+
+## 03.1 Presentation 阶段总结
+
+**验收日期：2026-11-23。**
+
+完成三个小节：
+
+1. Window Surface
+2. Swap Chain
+3. Image Views
+
+已建立从 GLFW Window 到 Vulkan Surface、Swapchain、Swapchain Images、ImageViews 的完整资源关系。
+
+已明确：
+
+- Instance 与 Surface 的关系。
+- Device 与 Swapchain 的关系。
+- Swapchain 与 Swapchain Images 的关系。
+- Swapchain Images 与 ImageViews 的关系。
+- 应用拥有对象与非拥有型 Vulkan 句柄的区别。
+- RAII 生命周期与 Vulkan 对象依赖。
+- CPU 资源清理与未来 GPU 同步的区别。
+
+本阶段不要求实际渲染输出。
+
+**阶段状态：03.1 Presentation 已全部完成。**
 
 ## 本章工程约定
 
@@ -88,9 +108,10 @@
 - 保持 Vulkan 对象所有权与生命周期明确。
 - 优先使用 Vulkan-Hpp RAII。
 - 每个小节只实现当前必要功能。
-- 不提前添加复杂 Renderer、Manager、RHI 或其他通用框架。
+- 不提前添加复杂 Renderer、Manager、RHI 或 Render Graph。
 - 只有出现实际复用需求时才讨论 Core 抽象。
-- 不将正常运行等同于 Vulkan Validation 或规范正确性。
+- 遵循 Vulkan 1.4、Dynamic Rendering、Slang 的现代技术路线。
+- 不将程序正常运行等同于 Vulkan 规范正确性。
 - 测试中故意违反 Vulkan 规范的调用不得保留在正式代码中。
 - 每个实践小节按约定完成本地构建验证和 GitHub Code Review。
 

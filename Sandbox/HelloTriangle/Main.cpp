@@ -546,15 +546,13 @@ private:
                     .g = vk::ComponentSwizzle::eIdentity,
                     .b = vk::ComponentSwizzle::eIdentity,
                     .a = vk::ComponentSwizzle::eIdentity},
-                .subresourceRange = vk::ImageSubresourceRange{
-                    .aspectMask = vk::ImageAspectFlagBits::eColor,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1}};
+                .subresourceRange = vk::ImageSubresourceRange{.aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1}};
 
             mSwapChainImageViews.emplace_back(mDevice, createInfo);
         }
+#ifndef NDEBUG
+        std::cout << "Created ImageView Count: " << mSwapChainImageViews.size() << '\n';
+#endif
     };
 };
 

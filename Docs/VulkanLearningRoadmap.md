@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
-- **刚完成：** [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)
+- **当前学习目标：** [03.2.0 Introduction](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
+- **刚完成：** [03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -30,7 +30,7 @@
 
 ### Phase 1 — Drawing a Triangle
 
-- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（进行中：03.0 Setup 已全部完成，03.1 Presentation 下一步）
+- **[03 Drawing a Triangle](Roadmap/03-Drawing-a-Triangle.md)** — 首个 Triangle：完整渲染实践主线（03.0 Setup、03.1 Presentation 已完成；03.2 Graphics Pipeline Basics 下一步）
   - [03.0 — Setup](Roadmap/03-0-Setup.md)
   - [03.1 — Presentation](Roadmap/03-1-Presentation.md)
   - [03.2 — Graphics Pipeline Basics](Roadmap/03-2-Graphics-Pipeline-Basics.md)
@@ -253,7 +253,7 @@ VKRenderer/
 
 ## 6. 当前进度
 
-**记录日期：2026-11-13。**
+**记录日期：2026-11-23。**
 
 当前按照 Khronos Vulkan Tutorial（latest）推进。
 
@@ -263,14 +263,16 @@ Phase 0 — World View & Environment
   01 Overview                  [COMPLETED]
   02 Development Environment   [COMPLETED]  M0
 
-Phase 1 — Drawing a Triangle  [IN PROGRESS]
-  03.0 Setup                  [COMPLETED]
-  03.1 Presentation           [IN PROGRESS]
-    03.1.0 Window Surface     [COMPLETED]
-    03.1.1 Swap Chain         [COMPLETED]
-    03.1.2 Image Views        ← NEXT / NOT STARTED
+Phase 1 — Drawing a Triangle   [IN PROGRESS]
+  03.0 Setup                   [COMPLETED]
+  03.1 Presentation            [COMPLETED]
+    03.1.0 Window Surface      [COMPLETED]
+    03.1.1 Swap Chain          [COMPLETED]
+    03.1.2 Image Views         [COMPLETED]
+  03.2 Graphics Pipeline Basics
+    03.2.0 Introduction        ← NEXT / NOT STARTED
 
-M1 First Triangle             [IN PROGRESS]
+M1 First Triangle              [IN PROGRESS]
 ```
 
 **已通过验收：**
@@ -280,68 +282,92 @@ M1 First Triangle             [IN PROGRESS]
 - [02 Development Environment](Roadmap/02-Development-Environment.md)：2026-11-10，M0 最终验收通过。
 - [03.0.0 Base Code](Roadmap/03-0-Setup.md#lesson-03-0-0)：2026-11-11，理论、实现、编译运行与 GitHub Review 通过。
 - [03.0.1 Instance](Roadmap/03-0-Setup.md#lesson-03-0-1)：2026-11-11，Instance 创建、扩展检查、RAII 生命周期及 GitHub Review 通过。
-- [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 Validation VUID 实验及阶段性 GitHub Review 通过；最终归档 Commit 77725dda0400f90d5eb92ffb79d61588d541a1c7 已复核通过”。
-- [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)：2026-11-13，理论、Physical Device 枚举、设备适用性检查、Debug/Release 及 GitHub Review 通过。
-- [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)：2026-11-14，理论、Queue Create Info、Feature Chain、Logical Device、Graphics Queue、Debug/Release 及 GitHub Review 通过。
-- [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)：2026-11-16，理论、Surface 创建、Graphics/Present Support、资源生命周期、Debug/Release 和 GitHub Review 通过。
-- [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)：2026-11-18，理论、Swapchain 创建、参数有效性、Images 所有权、Debug/Release 及 GitHub Review 通过。
+- [03.0.2 Validation Layers](Roadmap/03-0-Setup.md#lesson-03-0-2)：2026-11-13，理论、Debug Messenger 自测、真实 VUID 实验及 GitHub Review 通过；最终归档 Commit 为 `77725dda0400f90d5eb92ffb79d61588d541a1c7`。
+- [03.0.3 Physical Devices and Queue Families](Roadmap/03-0-Setup.md#lesson-03-0-3)：2026-11-13，设备枚举、能力查询、设备筛选、Debug/Release 及 GitHub Review 通过。
+- [03.0.4 Logical Device and Queues](Roadmap/03-0-Setup.md#lesson-03-0-4)：2026-11-14，Logical Device、Graphics Queue、Feature Chain 及 GitHub Review 通过。
+- [03.1.0 Window Surface](Roadmap/03-1-Presentation.md#lesson-03-1-0)：2026-11-16，Surface、Graphics/Present Support、生命周期及 GitHub Review 通过。
+- [03.1.1 Swap Chain](Roadmap/03-1-Presentation.md#lesson-03-1-1)：2026-11-18，Swapchain 创建、参数选择、Images 所有权及 GitHub Review 通过。
+- [03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)：2026-11-23，理论、ImageView 创建、Subresource Range、RAII 生命周期、Debug/Release 及 GitHub Review 通过。
+
+**阶段里程碑：**
+
+- M0 Development Environment：已完成。
+- 03.0 Setup：已完成。
+- 03.1 Presentation：已完成。
+- M1 First Triangle：进行中，尚未完成。
 
 **当前工程基线：**
 
 - GitHub：`BigBlack7/VKRenderer`。
 - 默认分支：`main`。
-- 当前技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
+- 最近完成代码审查的 Commit：`ef3635c60186d64f009f36d483b54daef425fbc9`。
+- 技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
 - Vulkan SDK / Loader：1.4.357。
 - GLFW：3.4。
 - Slang：2026.13.1。
-- 主要 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
-- `EnvironmentCheck` 继续作为 M0 环境验证 Sandbox 保留。
+- 当前使用的 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
+- `EnvironmentCheck` 保留为 M0 环境验证 Sandbox。
 - `HelloTriangle` 为 M1 正式实践 Sandbox。
-- 最近完成代码审查的 Commit：`5e52ac09100b1fb5361efe00185cc9357a062784`。
-- 已创建 `vk::raii::SwapchainKHR`。
-- 已查询 Surface Capabilities、Formats 与 Present Modes。
-- 当前使用 B8G8R8A8Srgb、SrgbNonlinear 和 Mailbox。
-- 已验证 Composite Alpha 的支持性。
+- 已完成 GLFW Window 和事件循环。
+- 已创建 Vulkan-Hpp RAII Context 与 Instance。
+- 已配置 Vulkan Validation Layer 和 Debug Messenger。
+- 已枚举、筛选 Physical Devices。
+- 已创建 Logical Device 与 Graphics/Present Queue。
+- 已创建 Window Surface。
+- 已创建 Vulkan Swapchain。
+- 已根据 Surface Capabilities 选择交换链参数。
+- 当前 Swapchain Format 为 B8G8R8A8Srgb。
+- 当前 Color Space 为 SrgbNonlinear。
+- 当前 Present Mode 为 Mailbox。
 - 当前 Swapchain Extent 为 800 × 600。
-- 实际获得三张 Swapchain Images。
-- 使用 `std::vector<vk::Image>` 保存非拥有型图像句柄。
-- 已确保 Swapchain 在 Surface 之前销毁。
-- 尚未创建 Swapchain Image Views。
-- 尚未执行 Acquire、Render 或 Present。
+- 已取得三张 Swapchain Images。
+- 已使用 `std::vector<vk::Image>` 保存非拥有型图像句柄。
+- 已使用 `std::vector<vk::raii::ImageView>` 管理对应 ImageViews。
+- 已确保 ImageViews、Swapchain 和 Surface 的销毁顺序正确。
+- 尚未创建 Graphics Pipeline 或 Command Buffers。
+- 尚未执行 GPU 绘制、Image Acquire 或 Present。
 - 当前无未解决的 P0 / P1 问题。
 
 **最近验证：**
 
-- Debug / Release 编译与运行成功。
-- Debug 构建中的自定义 Debug Utils 消息能够触发 Callback。
-- Release 构建按应用配置不显式启用 Validation Layer，也不创建 Debug Messenger。
-- 使用无效 `messageSeverity = 0` 成功触发真实 Validation Error。
-- 目标 VUID：`VUID-vkSubmitDebugUtilsMessageEXT-messageSeverity-parameter`。
-- 实验进程退出码为 0。
-- 临时测试代码已由开发者确认移除。
-- 最终清理代码与本次文档更新将统一提交 GitHub 复核。
-- 不把成功运行或无 Validation Error 等同于程序完全正确。
+- Debug / Release Clean Build 成功。
+- Debug / Release 程序正常退出，退出码均为 0。
+- 当前没有未解释的 Validation Error。
+- ImageView 创建成功由代码执行路径及本地运行结果共同支持。
+- GitHub Review 已检查 ImageView 参数、RAII 所有权与异常清理。
+- 本地编译和运行由开发者完成；GitHub 审查为静态代码审查。
+- 目前没有向 GPU 提交绘制工作，因此尚未实现 GPU 完成同步。
+- Vulkan Validation 已在之前小节通过真实 VUID 实验。
+- 不能将无 Validation Error 等同于整个程序完全正确。
 
 **下一步：**
 
-[03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
+[03.2.0 Introduction](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
 
-下一节重点：
+官方教程：
 
-- Vulkan Image 与 ImageView 的区别。
-- ImageView 的 View Type 与 Format。
-- Component Mapping。
-- Subresource Range。
-- Color Aspect、Mip Level、Array Layer。
-- 使用 Vulkan-Hpp RAII 创建 Swapchain Image Views。
-- ImageView 与 Swapchain Image 的所有权和生命周期。
+https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/00_Introduction.html
+
+下一阶段重点：
+
+- Graphics Pipeline 的整体工作流程。
+- Programmable Stages 与 Fixed-Function Stages。
+- Vertex Shader 与 Fragment Shader 的基本职责。
+- Input Assembly、Rasterization、Fragment Operations。
+- Pipeline State Object 与预先配置的设计动机。
+- 理解 Dynamic Rendering 与 Graphics Pipeline 的关系。
+- 保持 Vulkan 1.4、Vulkan-Hpp RAII、Slang 和 Dynamic Rendering 技术路线。
+
+下一小节为理论与架构理解单元，不提前实现完整 Graphics Pipeline。
 
 **进度维护原则：**
 
-- 每个小节的详细实现、问题修复及验收记录保存在对应章节文件。
-- 本学习地图只维护当前任务、已验收小节、工程基线与里程碑状态。
+- 详细教学任务与验收记录保存在对应的 `Docs/Roadmap/` 文件中。
+- 本学习地图只维护已完成进度、当前目标、工程基线与里程碑。
+- 通过当前小节验收后才更新完成状态。
 - M1 First Triangle 尚未完成。
-- 下一小节通过独立验收后，才能继续推进学习进度。
+- 后续工程架构继续坚持最小必要改动。
+- 不将 GitHub 静态审查等同于独立编译或运行验证。
 
 ## 学习与 Git 约定
 
