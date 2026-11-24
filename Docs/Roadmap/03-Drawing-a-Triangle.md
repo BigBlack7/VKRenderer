@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0 Setup 与 03.1 Presentation 已全部通过验收。
-- **当前小节：** 03.2.0 Graphics Pipeline Basics — Introduction，尚未开始。
+- **当前状态：** 03.0 Setup、03.1 Presentation 与 03.2.0 Introduction 已通过验收。
+- **当前小节：** 03.2.1 Shader Modules，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 继续使用最小必要架构，不提前建立通用 RHI 或 Renderer Manager。
@@ -22,7 +22,7 @@
 |---|---|---|
 | [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
 | [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 全部完成 |
-| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | Introduction 下一步 |
+| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | Introduction 已完成；Shader Modules 下一步 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
 
@@ -38,16 +38,17 @@
 - [03.1.0 Window Surface](03-1-Presentation.md#lesson-03-1-0)
 - [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
 - [03.1.2 Image Views](03-1-Presentation.md#lesson-03-1-2)
+- [03.2.0 Introduction](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
 
 **下一小节：**
 
-- [03.2.0 Introduction](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
+- [03.2.1 Shader Modules](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-1)
 
 **最近代码审查：**
 
-- Image Views 实现与 Code Review Commit：
-  `ef3635c60186d64f009f36d483b54daef425fbc9`
-- 03.1 Presentation 全部小节已通过验收。
+- Graphics Pipeline Introduction 工程准备 Commit：
+  `bddfce32789255b37bedad6d5f7ce3666df41e31`
+- 03.2.0 Introduction 理论验收通过。
 - 当前无未解决的 P0 / P1 问题。
 
 ## 当前工程状态

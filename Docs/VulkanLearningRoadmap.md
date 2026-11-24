@@ -6,8 +6,8 @@
 
 ## 从这里开始
 
-- **当前学习目标：** [03.2.0 Introduction](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
-- **刚完成：** [03.1.2 Image Views](Roadmap/03-1-Presentation.md#lesson-03-1-2)
+- **当前学习目标：** [03.2.1 Shader Modules](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-1)
+- **刚完成：** [03.2.0 Introduction](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
 - **当前里程碑：** M1 First Triangle — 进行中，尚未完成
 - **进度概览：** [第 6 节 · 当前进度](#current-progress)
 - **GitHub 仓库：** [BigBlack7/VKRenderer](https://github.com/BigBlack7/VKRenderer)
@@ -253,7 +253,7 @@ VKRenderer/
 
 ## 6. 当前进度
 
-**记录日期：2026-11-23。**
+**记录日期：2026-11-24。**
 
 当前按照 Khronos Vulkan Tutorial（latest）推进。
 
@@ -269,8 +269,9 @@ Phase 1 — Drawing a Triangle   [IN PROGRESS]
     03.1.0 Window Surface      [COMPLETED]
     03.1.1 Swap Chain          [COMPLETED]
     03.1.2 Image Views         [COMPLETED]
-  03.2 Graphics Pipeline Basics
-    03.2.0 Introduction        ← NEXT / NOT STARTED
+  03.2 Graphics Pipeline Basics [IN PROGRESS]
+    03.2.0 Introduction         [COMPLETED]
+    03.2.1 Shader Modules       ← NEXT / NOT STARTED
 
 M1 First Triangle              [IN PROGRESS]
 ```
@@ -300,7 +301,7 @@ M1 First Triangle              [IN PROGRESS]
 
 - GitHub：`BigBlack7/VKRenderer`。
 - 默认分支：`main`。
-- 最近完成代码审查的 Commit：`ef3635c60186d64f009f36d483b54daef425fbc9`。
+- 最近完成代码审查的 Commit：`bddfce32789255b37bedad6d5f7ce3666df41e31`。
 - 技术栈：Windows x64、Visual Studio 2022、MSVC、CMake、C++20。
 - Vulkan SDK / Loader：1.4.357。
 - GLFW：3.4。
@@ -308,24 +309,10 @@ M1 First Triangle              [IN PROGRESS]
 - 当前使用的 GPU：NVIDIA GeForce RTX 4080 Laptop GPU。
 - `EnvironmentCheck` 保留为 M0 环境验证 Sandbox。
 - `HelloTriangle` 为 M1 正式实践 Sandbox。
-- 已完成 GLFW Window 和事件循环。
-- 已创建 Vulkan-Hpp RAII Context 与 Instance。
-- 已配置 Vulkan Validation Layer 和 Debug Messenger。
-- 已枚举、筛选 Physical Devices。
-- 已创建 Logical Device 与 Graphics/Present Queue。
-- 已创建 Window Surface。
-- 已创建 Vulkan Swapchain。
-- 已根据 Surface Capabilities 选择交换链参数。
-- 当前 Swapchain Format 为 B8G8R8A8Srgb。
-- 当前 Color Space 为 SrgbNonlinear。
-- 当前 Present Mode 为 Mailbox。
-- 当前 Swapchain Extent 为 800 × 600。
-- 已取得三张 Swapchain Images。
-- 已使用 `std::vector<vk::Image>` 保存非拥有型图像句柄。
-- 已使用 `std::vector<vk::raii::ImageView>` 管理对应 ImageViews。
-- 已确保 ImageViews、Swapchain 和 Surface 的销毁顺序正确。
-- 尚未创建 Graphics Pipeline 或 Command Buffers。
-- 尚未执行 GPU 绘制、Image Acquire 或 Present。
+- 已完成 Graphics Pipeline 基础理论学习。
+- 已定义 `createGraphicsPipeline()` 空函数。
+- 下一小节接入 Pipeline 初始化流程。
+- 尚未创建 Shader Module、Pipeline Layout 或 Graphics Pipeline。
 - 当前无未解决的 P0 / P1 问题。
 
 **最近验证：**
@@ -342,23 +329,25 @@ M1 First Triangle              [IN PROGRESS]
 
 **下一步：**
 
-[03.2.0 Introduction](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
+[03.2.1 Shader Modules](Roadmap/03-2-Graphics-Pipeline-Basics.md#lesson-03-2-1)
 
 官方教程：
 
-https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/00_Introduction.html
+https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/01_Shader_modules.html
 
 下一阶段重点：
 
-- Graphics Pipeline 的整体工作流程。
-- Programmable Stages 与 Fixed-Function Stages。
-- Vertex Shader 与 Fragment Shader 的基本职责。
-- Input Assembly、Rasterization、Fragment Operations。
-- Pipeline State Object 与预先配置的设计动机。
-- 理解 Dynamic Rendering 与 Graphics Pipeline 的关系。
-- 保持 Vulkan 1.4、Vulkan-Hpp RAII、Slang 和 Dynamic Rendering 技术路线。
+- Slang Shader 基础语法。
+- Vertex Shader 与 Fragment Shader。
+- Clip Space、NDC 与顶点位置。
+- Shader Entry Point 与 Shader Stage。
+- 顶点属性传递及插值。
+- SPIR-V 字节码。
+- 使用 CMake 自动调用 slangc。
+- Shader 二进制文件读取。
+- Vulkan-Hpp RAII Shader Module 与 Shader Stage 配置。
 
-下一小节为理论与架构理解单元，不提前实现完整 Graphics Pipeline。
+继续基于现有 HelloTriangle 进行渐进实现，不提前创建完整 Graphics Pipeline。
 
 **进度维护原则：**
 
