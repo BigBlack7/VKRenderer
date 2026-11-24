@@ -554,6 +554,11 @@ private:
         std::cout << "Created ImageView Count: " << mSwapChainImageViews.size() << '\n';
 #endif
     };
+
+    void createGraphicsPipeline()
+    {
+        
+    }
 };
 
 int main()
