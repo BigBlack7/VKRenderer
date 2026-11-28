@@ -1,3 +1,10 @@
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
 #include <vulkan/vulkan_raii.hpp>
 
 #define GLFW_INCLUDE_VULKAN
@@ -15,6 +22,10 @@
 #include <optional>
 #include <ranges>
 #include <limits>
+#include <filesystem>
+#include <fstream>
+#include <array>
+#include <cstddef>
 
 constexpr int kWindowWidth = 800;
 constexpr int kWindowHeight = 600;
@@ -46,8 +57,36 @@ Instance
                 Swapchain Images
 */
 
+/*  SPIR-V 二进制文件的结构
+    SPIR-V 物理结构 · 前 5 个 Word
+    Word 0: Magic Number (0x07230203)
+    Word 1: Version Number (0x00010000)
+    Word 2: Generator 生成工具标识(例如 glslangValidator, SPIRV-Cross 等)
+    Word 3: Bound 结果 ID 的排他上界(指令中使用的 ID 的最大值 + 1)
+    Word 4: Schema (保留字段, 当前版本为 0)
+*/
+
 class HelloTriangleApplication
 {
+    // ========================Member variables========================
+private:
+    GLFWwindow *mWindow{nullptr};
+    vk::raii::Context mContext;
+    vk::raii::Instance mInstance{nullptr};
+    vk::raii::DebugUtilsMessengerEXT mDebugMessenger{nullptr};
+    vk::raii::SurfaceKHR mSurface{nullptr};
+    vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
+    vk::raii::Device mDevice{nullptr};
+    vk::raii::Queue mGraphicsQueue{nullptr};
+    vk::raii::SwapchainKHR mSwapChain{nullptr};
+
+    std::vector<vk::Image> mSwapChainImages;
+    std::vector<vk::raii::ImageView> mSwapChainImageViews;
+
+    vk::SurfaceFormatKHR mSwapChainSurfaceFormat{};
+    vk::Extent2D mSwapChainExtent{};
+
+    // ========================Member functions========================
 public:
     void run()
     {
@@ -66,21 +105,71 @@ public:
     }
 
 private:
-    GLFWwindow *mWindow{nullptr};
-    vk::raii::Context mContext;
-    vk::raii::Instance mInstance{nullptr};
-    vk::raii::DebugUtilsMessengerEXT mDebugMessenger{nullptr};
-    vk::raii::SurfaceKHR mSurface{nullptr};
-    vk::raii::PhysicalDevice mPhysicalDevice{nullptr};
-    vk::raii::Device mDevice{nullptr};
-    vk::raii::Queue mGraphicsQueue{nullptr};
-    vk::raii::SwapchainKHR mSwapChain{nullptr};
+    [[nodiscard]] static std::filesystem::path getExecutableDirectory()
+    {
+        std::wstring buffer(260, L'\0');
 
-    std::vector<vk::Image> mSwapChainImages;
-    std::vector<vk::raii::ImageView> mSwapChainImageViews;
+        while (true)
+        {
+            const DWORD length = GetModuleFileNameW(
+                nullptr,
+                buffer.data(),
+                static_cast<DWORD>(buffer.size()));
 
-    vk::SurfaceFormatKHR mSwapChainSurfaceFormat{};
-    vk::Extent2D mSwapChainExtent{};
+            if (length == 0)
+            {
+                throw std::runtime_error("Failed to get executable path");
+            }
+
+            if (length < buffer.size())
+            {
+                buffer.resize(length);
+
+                return std::filesystem::path(buffer).parent_path();
+            }
+
+            if (buffer.size() >= 32768)
+            {
+                throw std::runtime_error("Executable path is too long");
+            }
+
+            buffer.resize(std::min(buffer.size() * 2, std::size_t{32768}));
+        }
+    }
+
+    [[nodiscard]] static std::vector<uint32_t> readSpirv(const std::filesystem::path &path)
+    {
+        // 1. 打开 SPIR-V 文件, 并以二进制模式读取文件内容, 同时将文件指针移动到文件末尾以获取文件大小
+        // Windows 文本模式可能进行换行等转换, 而 SPIR-V 必须保留原始二进制内容, 不能使用普通文本读取方式
+        std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Failed to open SPIR-V file");
+        }
+        const std::streamoff fileSize = file.tellg();
+
+        // 2. 检查文件大小是否为 4 的倍数, 因为 SPIR-V 文件是以 32 位字为单位存储的
+        std::vector<uint32_t> code(static_cast<std::size_t>(fileSize) / sizeof(uint32_t));
+        if (!std::in_range<std::size_t>(fileSize) || !std::in_range<std::streamsize>(fileSize))
+        {
+            throw std::runtime_error("SPIR-V file is too large");
+        }
+
+        // 3. 将文件指针移动到文件开头, 并读取整个文件内容到 code 向量中
+        if (!file.seekg(0, std::ios::beg) || !file.read(reinterpret_cast<char *>(code.data()), static_cast<std::streamsize>(fileSize)))
+        {
+            throw std::runtime_error("Failed to read complete SPIR-V file");
+        }
+
+        // 4. 检查 SPIR-V 文件的魔数是否正确, 以确保文件格式有效
+        constexpr uint32_t kSpirvMagicNumber = 0x07230203;
+        if (code.front() != kSpirvMagicNumber)
+        {
+            throw std::runtime_error("Invalid SPIR-V magic number");
+        }
+        return code;
+    }
 
     void initWindow()
     {
@@ -108,6 +197,7 @@ private:
         createLogicalDevice();
         createSwapChain();
         createImageViews();
+        createGraphicsPipeline();
     }
 
     void mainLoop()
@@ -555,9 +645,40 @@ private:
 #endif
     };
 
+    [[nodiscard]] vk::raii::ShaderModule createShaderModule(const std::vector<uint32_t> &code) const
+    {
+        const vk::ShaderModuleCreateInfo createInfo{
+            .codeSize = code.size() * sizeof(uint32_t),
+            .pCode = code.data()};
+
+        return vk::raii::ShaderModule(mDevice, createInfo);
+    }
+
     void createGraphicsPipeline()
     {
-        
+        const auto shaderPath = getExecutableDirectory() / "shaders" / "HelloTriangle.spv";
+        const std::vector<uint32_t> shaderCode = readSpirv(shaderPath);
+        vk::raii::ShaderModule shaderModule = createShaderModule(shaderCode);
+
+        const vk::PipelineShaderStageCreateInfo vertShaderStageInfo{
+            .stage = vk::ShaderStageFlagBits::eVertex,
+            .module = *shaderModule,
+            .pName = "vertMain"};
+
+        const vk::PipelineShaderStageCreateInfo fragShaderStageInfo{
+            .stage = vk::ShaderStageFlagBits::eFragment,
+            .module = *shaderModule,
+            .pName = "fragMain"};
+
+        const std::array shaderStages{vertShaderStageInfo, fragShaderStageInfo};
+#ifndef NDEBUG
+        std::cout << "SPIR-V Byte Size: " << shaderCode.size() * sizeof(uint32_t) << " bytes\n";
+        std::cout << "SPIR-V Word Count: " << shaderCode.size() << " words\n";
+        std::cout << "Shader Module created successfully\n";
+        std::cout << "Prepared Shader Stage Count:" << shaderStages.size() << '\n';
+        std::cout << "Vertex Shader Entry Point: " << vertShaderStageInfo.pName << '\n';
+        std::cout << "Fragment Shader Entry Point: " << fragShaderStageInfo.pName << '\n';
+#endif
     }
 };
 
