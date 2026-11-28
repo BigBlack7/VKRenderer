@@ -60,9 +60,9 @@ Instance
 /*  SPIR-V 二进制文件的结构
     SPIR-V 物理结构 · 前 5 个 Word
     Word 0: Magic Number (0x07230203)
-    Word 1: Version Number (0x00010000)
+    Word 1: Version Number (例如 SPIR-V 1.4 为 0x00010400)
     Word 2: Generator 生成工具标识(例如 glslangValidator, SPIRV-Cross 等)
-    Word 3: Bound 结果 ID 的排他上界(指令中使用的 ID 的最大值 + 1)
+    Word 3: Bound 所有结果 ID 的排他上界
     Word 4: Schema (保留字段, 当前版本为 0)
 */
 
@@ -142,27 +142,43 @@ private:
         // 1. 打开 SPIR-V 文件, 并以二进制模式读取文件内容, 同时将文件指针移动到文件末尾以获取文件大小
         // Windows 文本模式可能进行换行等转换, 而 SPIR-V 必须保留原始二进制内容, 不能使用普通文本读取方式
         std::ifstream file(path, std::ios::binary | std::ios::ate);
-
         if (!file.is_open())
         {
             throw std::runtime_error("Failed to open SPIR-V file");
         }
-        const std::streamoff fileSize = file.tellg();
 
-        // 2. 检查文件大小是否为 4 的倍数, 因为 SPIR-V 文件是以 32 位字为单位存储的
-        std::vector<uint32_t> code(static_cast<std::size_t>(fileSize) / sizeof(uint32_t));
+        const std::streamoff fileSize = file.tellg();
+        constexpr std::streamoff kSpirvWordSize = sizeof(uint32_t);
+        constexpr std::streamoff kSpirvHeaderSize = 5 * kSpirvWordSize;
+        // 2. 检查文件大小查询结果
+        if (!file || fileSize < 0)
+        {
+            throw std::runtime_error("Failed to determine SPIR-V file size");
+        }
+        // 3. 检查是否包含完整 Header
+        if (fileSize < kSpirvHeaderSize)
+        {
+            throw std::runtime_error("SPIR-V file is too small");
+        }
+        // 4. 检查是否由完整的 32-bit Words 组成
+        if (fileSize % kSpirvWordSize != 0)
+        {
+            throw std::runtime_error("SPIR-V file size is not a multiple of 4");
+        }
+        // 5. 检查文件大小是否为 4 的倍数, 因为 SPIR-V 文件是以 32 位字为单位存储的
         if (!std::in_range<std::size_t>(fileSize) || !std::in_range<std::streamsize>(fileSize))
         {
             throw std::runtime_error("SPIR-V file is too large");
         }
+        std::vector<uint32_t> code(static_cast<std::size_t>(fileSize) / sizeof(uint32_t));
 
-        // 3. 将文件指针移动到文件开头, 并读取整个文件内容到 code 向量中
+        // 6. 将文件指针移动到文件开头, 并读取整个文件内容到 code 向量中
         if (!file.seekg(0, std::ios::beg) || !file.read(reinterpret_cast<char *>(code.data()), static_cast<std::streamsize>(fileSize)))
         {
             throw std::runtime_error("Failed to read complete SPIR-V file");
         }
 
-        // 4. 检查 SPIR-V 文件的魔数是否正确, 以确保文件格式有效
+        // 7. 检查 SPIR-V 文件的魔数是否正确, 以确保文件格式有效
         constexpr uint32_t kSpirvMagicNumber = 0x07230203;
         if (code.front() != kSpirvMagicNumber)
         {
