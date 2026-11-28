@@ -10,8 +10,8 @@
 
 各对象与同步逻辑必须在对应小节完成原理学习、代码实现、验证和审查，不提前整体实现。
 
-- **当前状态：** 03.0 Setup、03.1 Presentation 与 03.2.0 Introduction 已通过验收。
-- **当前小节：** 03.2.1 Shader Modules，尚未开始。
+- **当前状态：** 03.0 Setup、03.1 Presentation、03.2.0 Introduction 与 03.2.1 Shader Modules 已通过验收。
+- **当前小节：** 03.2.2 Fixed Functions，尚未开始。
 - **里程碑：** M1 First Triangle，进行中，尚未完成。
 - **工程入口：** `Sandbox/HelloTriangle/Main.cpp`。
 - **当前约束：** 继续使用最小必要架构，不提前建立通用 RHI 或 Renderer Manager。
@@ -22,7 +22,7 @@
 |---|---|---|
 | [03.0 Setup](03-0-Setup.md) | Base Code、Instance、Validation Layers、Physical/Logical Device | 全部完成 |
 | [03.1 Presentation](03-1-Presentation.md) | Surface、Swapchain、Image Views | 全部完成 |
-| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | Introduction 已完成；Shader Modules 下一步 |
+| [03.2 Graphics Pipeline Basics](03-2-Graphics-Pipeline-Basics.md) | Shader、固定功能、Dynamic Rendering、Pipeline | Introduction、Shader Modules 已完成；Fixed Functions 下一步 |
 | [03.3 Drawing](03-3-Drawing.md) | Command Buffer、提交与呈现、Frames in Flight | 待开始 |
 | [03.4 Swap Chain Recreation](03-4-Swap-Chain-Recreation.md) | Resize、资源重建及生命周期 | 待开始 |
 
@@ -39,16 +39,22 @@
 - [03.1.1 Swap Chain](03-1-Presentation.md#lesson-03-1-1)
 - [03.1.2 Image Views](03-1-Presentation.md#lesson-03-1-2)
 - [03.2.0 Introduction](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-0)
+- [03.2.1 Shader Modules](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-1)
 
 **下一小节：**
 
-- [03.2.1 Shader Modules](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-1)
+- [03.2.2 Fixed Functions](03-2-Graphics-Pipeline-Basics.md#lesson-03-2-2)
 
 **最近代码审查：**
 
-- Graphics Pipeline Introduction 工程准备 Commit：
-  `bddfce32789255b37bedad6d5f7ce3666df41e31`
-- 03.2.0 Introduction 理论验收通过。
+- Shader 与 CMake 初步实现 Commit：
+  `d779dd6e600edd9d9a8b5b96d1d09bb5556eec66`
+- Shader Module 实现 Commit：
+  `2f3b71d3f00e903b340e8dc9d599e0e5b50e36a8`
+- Shader Module 修复与最终 Code Review Commit：
+  `777fb2de56d01e55097a74605e88ed479798e4a7`
+- 03.2.1 Shader Modules 全部知识单元已通过验收。
+- 文件读取安全性 P0 问题已解决。
 - 当前无未解决的 P0 / P1 问题。
 
 ## 当前工程状态
@@ -70,12 +76,18 @@
 - ImageViews 在 Swapchain 之前销毁。
 - Swapchain 在 Surface 之前销毁。
 - Surface 在 GLFW Window 之前销毁。
+- 已建立 Slang Shader 源文件。
+- 已实现 Vertex Shader 与 Fragment Shader。
+- 已建立 CMake Shader 自动编译与增量构建流程。
+- 已完成 SPIR-V 离线验证及反汇编。
+- 已实现基于 EXE 所在目录的 Shader 资源定位。
+- 已实现安全的 SPIR-V 二进制读取。
+- 已创建 Vulkan-Hpp RAII Shader Module。
+- 已配置两个 Shader Stage。
+- Shader Module 局部 RAII 生命周期正确。
+- Shader 文件缺失及损坏文件测试通过。
 - Debug / Release 构建运行正常。
-- 尚未创建 Graphics Pipeline。
-- 尚未录制 Command Buffers。
-- 尚未执行 Image Layout Transition。
-- 尚未执行 Acquire、Render 或 Present。
-- 当前无未解决的 P0 / P1 问题。
+- 尚未创建 Pipeline Layout 或完整 Graphics Pipeline。
 
 ## 03.1 Presentation 阶段总结
 
